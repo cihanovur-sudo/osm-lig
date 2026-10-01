@@ -21,7 +21,7 @@
     .card { background: #1c2541; padding: 15px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #3a506b; }
     h3, h4 { color: #f97316; margin-top: 0; }
     input, select, button { width: 100%; padding: 12px; margin: 6px 0; border-radius: 8px; border: 1px solid #3a506b; background: #0b132b; color: #fff; font-size: 14px; }
-    button { background: #f97316; font-weight: bold; cursor: pointer; border: none; color: #fff; font-size: 16px; transition: 0.2s; position: relative; z-index: 50; }
+    button { background: #f97316; font-weight: bold; cursor: pointer; border: none; color: #fff; font-size: 16px; transition: 0.2s; }
     button:active { transform: scale(0.98); }
     button.danger { background: #ef4444; color: #fff; }
     button.sim-btn { background: #f97316; color: #fff; font-size: 16px; font-weight: bold; padding: 15px; box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3); }
@@ -109,7 +109,6 @@
         <input type="text" id="in-team-name" placeholder="Örn: Trabzonspor" value="Trabzonspor">
       </div>
 
-      <!-- Doğrudan onclick tanımlandı, böylece tıklama asla kaçmaz -->
       <button type="button" id="btn-start" onclick="startGame()">🚀 Odaya Katıl</button>
     </div>
   </div>
@@ -122,21 +121,21 @@
         <h2 id="disp-team-name">Takımım</h2>
         <span class="league-badge" id="disp-league-code">Oda: -</span>
       </div>
-      <button type="button" class="menu-btn" id="btn-open-menu" onclick="toggleMenu()">☰</button>
+      <button type="button" class="menu-btn" onclick="toggleMenu()">☰</button>
     </div>
 
     <div class="sidebar" id="sidebar">
       <div class="sidebar-header">
         <h3>Menü</h3>
-        <button type="button" class="close-btn" id="btn-close-menu" onclick="toggleMenu()">✕</button>
+        <button type="button" class="close-btn" onclick="toggleMenu()">✕</button>
       </div>
       <ul class="menu-list">
-        <li data-page="home">🏠 Saha & Kadro</li>
-        <li data-page="squad">📋 Kadro & Oyuncu Ekle</li>
-        <li data-page="tactics">🎯 Taktikler</li>
-        <li data-page="fixtures">📅 Fikstür & Maçlar</li>
-        <li data-page="table">📊 Canlı Puan Durumu</li>
-        <li data-page="logs">📜 İşlem Geçmişi (Loglar)</li>
+        <li onclick="showPage('home')">🏠 Saha & Kadro</li>
+        <li onclick="showPage('squad')">📋 Kadro & Oyuncu Ekle</li>
+        <li onclick="showPage('tactics')">🎯 Taktikler</li>
+        <li onclick="showPage('fixtures')">📅 Fikstür & Maçlar</li>
+        <li onclick="showPage('table')">📊 Canlı Puan Durumu</li>
+        <li onclick="showPage('logs')">📜 İşlem Geçmişi (Loglar)</li>
       </ul>
     </div>
 
@@ -145,7 +144,7 @@
       <!-- PAGE 1: SAHA -->
       <div id="page-home">
         <div class="card">
-          <button class="sim-btn" type="button" id="btn-sim-match" onclick="startMatchSimulation()">⚡ Sıradaki Maçı Simüle Et (Canlı İzle)</button>
+          <button class="sim-btn" type="button" onclick="startMatchSimulation()">⚡ Sıradaki Maçı Simüle Et (Canlı İzle)</button>
         </div>
 
         <div class="card">
@@ -178,7 +177,7 @@
           <input type="text" id="p-country" placeholder="Ülke Bayrağı (Örn: 🇫🇷)">
           <input type="number" id="p-ovr" placeholder="Overall (Örn: 82)">
           <input type="number" id="p-pot" placeholder="Potansiyel (Örn: 86)">
-          <button type="button" id="btn-add-p" onclick="oyuncuEkl()">Kadroya Oyuncu Ekle</button>
+          <button type="button" onclick="oyuncuEkl()">Kadroya Oyuncu Ekle</button>
         </div>
       </div>
 
@@ -187,7 +186,7 @@
         <div class="card">
           <h3>🎯 Taktikler</h3>
           <label><b>Oyun Stili:</b></label>
-          <select id="t-style">
+          <select id="t-style" onchange="addLog('Taktik stili değiştirildi.')">
             <option value="pas">⚽ Paslaşarak Oyun (+Güç)</option>
             <option value="kontra">⚡ Hızlı Kontra Atak</option>
             <option value="uzuntop">🚀 Uzun Top Oyunu</option>
@@ -197,15 +196,15 @@
 
           <div style="margin-top:12px;">
             <label>Baskı: <span id="v-baski" style="color:#f97316;">50%</span></label>
-            <input type="range" id="r-baski" min="0" max="100" value="50">
+            <input type="range" id="r-baski" min="0" max="100" value="50" oninput="document.getElementById('v-baski').innerText=this.value+'%'">
           </div>
           <div>
             <label>Tempo: <span id="v-tempo" style="color:#f97316;">50%</span></label>
-            <input type="range" id="r-tempo" min="0" max="100" value="50">
+            <input type="range" id="r-tempo" min="0" max="100" value="50" oninput="document.getElementById('v-tempo').innerText=this.value+'%'">
           </div>
           <div>
             <label>Agresiflik: <span id="v-agresif" style="color:#f97316;">50%</span></label>
-            <input type="range" id="r-agresif" min="0" max="100" value="50">
+            <input type="range" id="r-agresif" min="0" max="100" value="50" oninput="document.getElementById('v-agresif').innerText=this.value+'%'">
           </div>
         </div>
       </div>
@@ -235,11 +234,10 @@
       <div id="page-logs" style="display:none;">
         <div class="card">
           <h3>📜 Hamle ve İşlem Geçmişi</h3>
-          <p style="font-size: 11px; color: #94a3b8;">Oyuncunun yaptığı her adım kaydolur.</p>
           <div class="log-box" id="log-container">
             <div class="log-item">Henüz hiçbir işlem kaydı yok...</div>
           </div>
-          <button type="button" class="danger" style="margin-top: 10px;" id="btn-clear-logs" onclick="clearLogs()">🗑️ Log Geçmişini Temizle</button>
+          <button type="button" class="danger" style="margin-top: 10px;" onclick="clearLogs()">🗑️ Log Geçmişini Temizle</button>
         </div>
       </div>
 
@@ -267,16 +265,12 @@
       <button type="button" class="speed-btn" id="sp-4" onclick="changeSpeed(250, 'sp-4')">4x Hız</button>
     </div>
 
-    <button type="button" id="btn-close-sim" onclick="closeMatchModal()" style="margin-top:15px; display:none; background:#22c55e;">Maçı Tamamla ve Menüye Dön</button>
+    <button type="button" onclick="closeMatchModal()" style="margin-top:15px; display:none; background:#22c55e;" id="btn-close-sim">Maçı Tamamla ve Menüye Dön</button>
   </div>
 
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-
   <script>
-    let db = null;
     let leagueCode = "ozeloda1";
-    let myTeamId = localStorage.getItem('myTeamId') || 'team_' + Math.floor(Math.random() * 100000);
+    let myTeamId = 'team_' + Math.floor(Math.random() * 100000);
     let myTeamName = "Trabzonspor";
     let userLogs = JSON.parse(localStorage.getItem('userLogs')) || [];
 
@@ -298,35 +292,11 @@
     let currentAwayScore = 0;
     let simDelay = 1000;
 
-    function initFirebase() {
-      try {
-        if (typeof firebase !== 'undefined' && !firebase.apps.length) {
-          firebase.initializeApp({
-            apiKey: "AIzaSyAQin6wcbsZ1leZCAFE6NfncSjEhg9ntIg",
-            authDomain: "bimsuperlig.firebaseapp.com",
-            databaseURL: "https://bimsuperlig-default-rtdb.firebaseio.com",
-            projectId: "bimsuperlig",
-            storageBucket: "bimsuperlig.firebasestorage.app",
-            messagingSenderId: "451832283043",
-            appId: "1:451832283043:web:914a7c63b6d77ddaa72416"
-          });
-          db = firebase.database();
-        }
-      } catch(e) { console.log("Firebase baglanti uyarisi:", e); }
-    }
-
     function addLog(actionText) {
       const now = new Date();
       const timeStr = now.toTimeString().split(' ')[0];
-      const logEntry = { time: timeStr, text: actionText };
-
-      userLogs.unshift(logEntry);
+      userLogs.unshift({ time: timeStr, text: actionText });
       localStorage.setItem('userLogs', JSON.stringify(userLogs));
-
-      if (db && leagueCode) {
-        db.ref(`leagues/${leagueCode}/logs/${myTeamId}`).push(logEntry);
-      }
-
       renderLogs();
     }
 
@@ -334,19 +304,12 @@
       const container = document.getElementById('log-container');
       if (!container) return;
       container.innerHTML = '';
-
       if (userLogs.length === 0) {
         container.innerHTML = '<div class="log-item">Henüz hiçbir işlem kaydı yok...</div>';
         return;
       }
-
       userLogs.forEach(log => {
-        container.innerHTML += `
-          <div class="log-item">
-            <span>${log.text}</span>
-            <span class="log-time">${log.time}</span>
-          </div>
-        `;
+        container.innerHTML += `<div class="log-item"><span>${log.text}</span><span class="log-time">${log.time}</span></div>`;
       });
     }
 
@@ -368,47 +331,22 @@
       leagueCode = lInput.toLowerCase();
       myTeamName = tInput;
 
-      localStorage.setItem('myTeamId', myTeamId);
-
       document.getElementById('disp-team-name').innerText = myTeamName;
       document.getElementById('disp-league-code').innerText = "Oda: " + leagueCode;
 
       document.getElementById('sec-login').style.display = 'none';
       document.getElementById('sec-game').style.display = 'block';
 
-      initFirebase();
       addLog(`Odaya katılma sağlandı. Oda: ${leagueCode}, Takım: ${myTeamName}`);
 
-      const myData = {
+      allLeagueTeams[myTeamId] = {
         id: myTeamId, 
         name: myTeamName,
         pts: 0, o: 0, g: 0, b: 0, m: 0, ag: 0, yg: 0,
         squad: squad
       };
 
-      allLeagueTeams[myTeamId] = myData;
-
-      if (db) {
-        db.ref(`leagues/${leagueCode}/teams/${myTeamId}`).set(myData);
-        
-        db.ref(`leagues/${leagueCode}/teams`).on('value', snapshot => {
-          const data = snapshot.val();
-          if (data) {
-            allLeagueTeams = data;
-            checkAndGenerateFixtures();
-            renderTable();
-          }
-        });
-
-        db.ref(`leagues/${leagueCode}/fixtures`).on('value', snapshot => {
-          const data = snapshot.val();
-          if (data) {
-            fixtures = data;
-            renderFixtures();
-          }
-        });
-      }
-
+      checkAndGenerateFixtures();
       renderSquad();
       renderTable();
       renderLogs();
@@ -416,12 +354,11 @@
 
     function checkAndGenerateFixtures() {
       let teams = Object.values(allLeagueTeams);
-      if (teams.length >= 2 && fixtures.length === 0) {
+      if (fixtures.length === 0) {
         fixtures = [
-          { round: 1, home: teams[0].id, away: teams[1].id, played: false, hGoals: 0, aGoals: 0 },
-          { round: 2, home: teams[1].id, away: teams[0].id, played: false, hGoals: 0, aGoals: 0 }
+          { round: 1, home: myTeamId, away: 'rakip_bot', played: false, hGoals: 0, aGoals: 0 }
         ];
-        if (db) db.ref(`leagues/${leagueCode}/fixtures`).set(fixtures);
+        allLeagueTeams['rakip_bot'] = { id: 'rakip_bot', name: "Rakip Bot Takım", pts: 0, o: 0, g: 0, b: 0, m: 0, ag: 0, yg: 0 };
         renderFixtures();
       }
     }
@@ -443,7 +380,6 @@
             <div>OVR: <b>${p.ovr}</b> | POT: <b>${p.pot}</b></div>
           </div>
         `;
-
         if(squadCont) squadCont.innerHTML += cardHTML;
         if(homeCont) homeCont.innerHTML += cardHTML;
       });
@@ -464,8 +400,57 @@
         return alert('Lütfen oyuncu adı ve istatistiklerini doğru girin!');
       }
 
-      const newP = { id: Date.now(), name, country, ovr, pot };
-      squad.push(newP);
-
+      squad.push({ id: Date.now(), name, country, ovr, pot });
       document.getElementById('p-name').value = '';
-     
+      document.getElementById('p-country').value = '';
+      document.getElementById('p-ovr').value = '';
+      document.getElementById('p-pot').value = '';
+
+      addLog(`Kadroya yeni oyuncu eklendi: ${name} (${ovr})`);
+      renderSquad();
+    }
+
+    function slotSec(pos) {
+      if (!selectedPlayer) {
+        return alert('Lütfen önce aşağıdaki listeden bir oyuncu seçin!');
+      }
+      pitchSlots[pos] = selectedPlayer;
+      const slotEl = document.getElementById(`slot-${pos}`);
+      slotEl.classList.add('filled');
+      slotEl.innerHTML = `<div>${selectedPlayer.country} ${selectedPlayer.name}</div><div style="color:#f97316;">${selectedPlayer.ovr}</div>`;
+      
+      addLog(`${selectedPlayer.name}, sahadaki ${pos} pozisyonuna yerleştirildi.`);
+      selectedPlayer = null;
+      renderSquad();
+    }
+
+    function toggleMenu() {
+      document.getElementById('sidebar').classList.toggle('open');
+    }
+
+    function showPage(pageId) {
+      ['home', 'squad', 'tactics', 'fixtures', 'table', 'logs'].forEach(p => {
+        const el = document.getElementById(`page-${p}`);
+        if (el) el.style.display = p === pageId ? 'block' : 'none';
+      });
+      document.getElementById('sidebar').classList.remove('open');
+    }
+
+    function renderTable() {
+      const tbody = document.getElementById('league-table');
+      if(!tbody) return;
+      tbody.innerHTML = '';
+      Object.values(allLeagueTeams).forEach(t => {
+        tbody.innerHTML += `
+          <tr>
+            <td>${t.name}</td>
+            <td>${t.o || 0}</td><td>${t.g || 0}</td><td>${t.b || 0}</td><td>${t.m || 0}</td>
+            <td>${t.ag || 0}</td><td>${t.yg || 0}</td><td style="color:#f97316;">${t.pts || 0}</td>
+          </tr>
+        `;
+      });
+    }
+
+    function renderFixtures() {
+      const container = document.getElementById('fixture-list');
+  
