@@ -352,7 +352,6 @@
             <div class="card">
                 <h2>İlk 11 (4 Asıl Oyuncu)</h2>
                 <div class="pitch">
-                    <!-- 4 Oyuncu Slotu -->
                     <div class="row-players">
                         <div class="player-slot" id="slot-0" onclick="assignPlayerToSlot(0)">Slot 1 (Boş)</div>
                         <div class="player-slot" id="slot-1" onclick="assignPlayerToSlot(1)">Slot 2 (Boş)</div>
@@ -368,9 +367,7 @@
                 <h2>Oyuncu Havuzu (Maksimum 16)</h2>
                 <input type="text" id="newPlayerName" placeholder="Oyuncu Adı (Örn: Alex)">
                 <button class="btn" onclick="addPlayer()">Oyuncu Ekle</button>
-                <div class="squad-list" id="squadListContainer">
-                    <!-- Oyuncular buraya listelenir -->
-                </div>
+                <div class="squad-list" id="squadListContainer"></div>
             </div>
         </section>
 
@@ -448,7 +445,7 @@
         };
 
         window.onload = function() {
-            const savedData = localStorage.getItem('bimSuperLigSave_v3');
+            const savedData = localStorage.getItem('bimSuperLigSave_v4');
             if (savedData) {
                 try {
                     gameState = JSON.parse(savedData);
@@ -461,7 +458,7 @@
         };
 
         function saveGame() {
-            localStorage.setItem('bimSuperLigSave_v3', JSON.stringify(gameState));
+            localStorage.setItem('bimSuperLigSave_v4', JSON.stringify(gameState));
         }
 
         function toggleMenu() {
@@ -601,4 +598,5 @@
             tbody.innerHTML = "";
             const teams = Object.keys(gameState.table);
             if(teams.length === 0) {
-            
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align: center;">Henüz veri yok.</td></tr>`;
+            } else 
