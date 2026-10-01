@@ -185,6 +185,30 @@
             font-size: 1rem;
         }
 
+        /* Sürgülü Slider Stilleri */
+        .range-group {
+            margin-bottom: 20px;
+        }
+
+        .range-group label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+        }
+
+        .range-group span {
+            color: var(--primary);
+            font-weight: bold;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            accent-color: var(--primary);
+            cursor: pointer;
+            background: transparent;
+        }
+
         button.btn {
             background-color: var(--primary);
             color: white;
@@ -370,6 +394,7 @@
         <section id="tactics-view" class="view-section">
             <div class="card">
                 <h2>Maç Taktiği ve Strateji</h2>
+                
                 <label>Oyun Stili:</label>
                 <select id="playStyle">
                     <option value="passing">Pas Oyunu (Tiki-Taka)</option>
@@ -378,6 +403,22 @@
                     <option value="press">Sert Pres & Baskı</option>
                     <option value="shoot">Kaleyi Gördüğünde Vur</option>
                 </select>
+
+                <div class="range-group">
+                    <label>Baskı Gücü: <span id="valPress">50</span>%</label>
+                    <input type="range" id="rangePress" min="0" max="100" value="50" oninput="document.getElementById('valPress').innerText = this.value">
+                </div>
+
+                <div class="range-group">
+                    <label>Tempo: <span id="valTempo">50</span>%</label>
+                    <input type="range" id="rangeTempo" min="0" max="100" value="50" oninput="document.getElementById('valTempo').innerText = this.value">
+                </div>
+
+                <div class="range-group">
+                    <label>Agresiflik: <span id="valAggression">50</span>%</label>
+                    <input type="range" id="rangeAggression" min="0" max="100" value="50" oninput="document.getElementById('valAggression').innerText = this.value">
+                </div>
+
                 <button class="btn" onclick="saveTactics()">Taktikleri Kaydet</button>
             </div>
         </section>
@@ -433,28 +474,43 @@
             roomCode: "",
             teamName: "",
             tactic: "passing",
+            press: 50,
+            tempo: 50,
+            aggression: 50,
             players: [], 
             lineup: [null, null, null, null], 
             table: {},
             fixtures: []
         };
 
-        // Sayfa yüklendiğinde hafızadan verileri çek
         window.addEventListener('DOMContentLoaded', () => {
-            const savedData = localStorage.getItem('bimSuperLigSave_v5');
+            const savedData = localStorage.getItem('bimSuperLigSave_v6');
             if (savedData) {
                 try {
                     gameState = JSON.parse(savedData);
                     if(gameState.teamName) document.getElementById('teamNameInput').value = gameState.teamName;
                     if(gameState.roomCode) document.getElementById('roomCodeInput').value = gameState.roomCode;
                     if(gameState.tactic) document.getElementById('playStyle').value = gameState.tactic;
+                    
+                    if(gameState.press !== undefined) {
+                        document.getElementById('rangePress').value = gameState.press;
+                        document.getElementById('valPress').innerText = gameState.press;
+                    }
+                    if(gameState.tempo !== undefined) {
+                        document.getElementById('rangeTempo').value = gameState.tempo;
+                        document.getElementById('valTempo').innerText = gameState.tempo;
+                    }
+                    if(gameState.aggression !== undefined) {
+                        document.getElementById('rangeAggression').value = gameState.aggression;
+                        document.getElementById('valAggression').innerText = gameState.aggression;
+                    }
                 } catch(e) { console.error("Kayıt yüklenemedi", e); }
             }
             updateUI();
         });
 
         function saveGame() {
-            localStorage.setItem('bimSuperLigSave_v5', JSON.stringify(gameState));
+            localStorage.setItem('bimSuperLigSave_v6', JSON.stringify(gameState));
         }
 
         function toggleMenu() {
@@ -536,8 +592,12 @@
 
         function saveTactics() {
             gameState.tactic = document.getElementById('playStyle').value;
+            gameState.press = parseInt(document.getElementById('rangePress').value);
+            gameState.tempo = parseInt(document.getElementById('rangeTempo').value);
+            gameState.aggression = parseInt(document.getElementById('rangeAggression').value);
+            
             saveGame();
-            alert("Taktikleriniz kaydedildi!");
+            alert("Taktikler, Baskı, Tempo ve Agresiflik ayarları başarıyla kaydedildi!");
         }
 
         function hashCode(str) {
@@ -551,85 +611,4 @@
 
         function startMatchSimulation() {
             const commentaryBox = document.getElementById('commentaryBox');
-            const homeTeam = gameState.teamName || "Ev Sahibi";
-            const awayTeam = "Rakip Takım";
-
-            document.getElementById('homeTeamLbl').innerText = homeTeam;
-            document.getElementById('awayTeamLbl').innerText = awayTeam;
-
-            commentaryBox.innerHTML = `<div class="comment-item">0' Maç hakemin düdüğüyle başladı! (Taktik: ${gameState.tactic})</div>`;
-
-            let seed = hashCode(gameState.roomCode + homeTeam);
-            let homeGoals = seed % 4;
-            let awayGoals = (seed >> 2) % 3;
-
-            setTimeout(() => {
-                commentaryBox.innerHTML += `<div class="comment-item">35' Takımınız harika paslar yapıyor ve kaleyi yokluyor!</div>`;
-            }, 1500);
-
-            setTimeout(() => {
-                document.getElementById('scoreLbl').innerText = `${homeGoals} - ${awayGoals}`;
-                commentaryBox.innerHTML += `<div class="comment-item">90' Maç bitti! Sonuç: ${homeTeam} ${homeGoals} - ${awayGoals} ${awayTeam}</div>`;
-
-                if(!gameState.table[homeTeam]) {
-                    gameState.table[homeTeam] = { p: 0, o: 0, g: 0, b: 0, m: 0 };
-                }
-                let stats = gameState.table[homeTeam];
-                stats.o += 1;
-                if(homeGoals > awayGoals) { stats.g += 1; stats.p += 3; }
-                else if(homeGoals === awayGoals) { stats.b += 1; stats.p += 1; }
-                else { stats.m += 1; }
-
-                saveGame();
-                updateUI();
-            }, 3000);
-        }
-
-        function updateUI() {
-            // Oyuncu listesi
-            const listContainer = document.getElementById('squadListContainer');
-            if(listContainer) {
-                listContainer.innerHTML = "";
-                gameState.players.forEach((p, idx) => {
-                    listContainer.innerHTML += `<div class="squad-item"><span>${idx+1}. ${p}</span></div>`;
-                });
-            }
-
-            // Slotlar
-            for(let i=0; i<4; i++) {
-                let slotElem = document.getElementById(`slot-${i}`);
-                if(slotElem) {
-                    if(gameState.lineup[i]) {
-                        slotElem.innerText = gameState.lineup[i];
-                        slotElem.style.border = "1px solid var(--primary)";
-                    } else {
-                        slotElem.innerText = `Slot ${i+1} (Boş)`;
-                    }
-                }
-            }
-
-            // Puan Tablosu
-            const tbody = document.getElementById('leagueTableBody');
-            if(tbody) {
-                tbody.innerHTML = "";
-                const teams = Object.keys(gameState.table);
-                if(teams.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="6" style="text-align: center;">Henüz veri yok.</td></tr>`;
-                } else {
-                    teams.sort((a, b) => gameState.table[b].p - gameState.table[a].p);
-                    teams.forEach(team => {
-                        let s = gameState.table[team];
-                        tbody.innerHTML += `<tr><td><b>${team}</b></td><td>${s.o}</td><td>${s.g}</td><td>${s.b}</td><td>${s.m}</td><td><b>${s.p}</b></td></tr>`;
-                    });
-                }
-            }
-
-            // Fikstür
-            const fixContainer = document.getElementById('fixtureContainer');
-            if(fixContainer && gameState.fixtures.length > 0) {
-                fixContainer.innerHTML = gameState.fixtures.map(f => `<div>📌 ${f}</div>`).join('');
-            }
-        }
-    </script>
-</body>
-</html>
+            const homeTe
