@@ -8,7 +8,6 @@
     * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
     body { background: #0f172a; color: #fff; margin: 0; padding: 0; overflow-x: hidden; }
     
-    /* ÜST BAR (NAVBAR) */
     .top-bar { 
       background: #1e293b; padding: 15px 20px; display: flex; 
       justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; 
@@ -26,7 +25,7 @@
     button.danger { background: #ef4444; color: #fff; }
     button.sim-btn { background: #f59e0b; color: #000; font-size: 16px; font-weight: bold; padding: 15px; }
 
-    /* YAN MENÜ (SIDEBAR) */
+    /* YAN MENÜ */
     .sidebar {
       position: fixed; top: 0; right: -280px; width: 280px; height: 100%;
       background: #0f172a; border-left: 2px solid #22c55e; z-index: 200;
@@ -37,10 +36,9 @@
     .sidebar-header h3 { margin: 0; }
     .close-btn { background: transparent; color: #ef4444; border: none; font-size: 22px; cursor: pointer; width: auto; }
     .menu-list { list-style: none; padding: 0; margin-top: 20px; }
-    .menu-list li { padding: 12px; margin: 8px 0; background: #1e293b; border-radius: 8px; cursor: pointer; border-left: 4px solid #22c55e; font-weight: bold; transition: background 0.2s; }
-    .menu-list li:hover { background: #334155; }
+    .menu-list li { padding: 12px; margin: 8px 0; background: #1e293b; border-radius: 8px; cursor: pointer; border-left: 4px solid #22c55e; font-weight: bold; }
 
-    /* SAHA VE PITCH */
+    /* SAHA */
     .pitch { 
       background: linear-gradient(180deg, #15803d 0%, #166534 100%); 
       border: 3px solid #fff; height: 380px; border-radius: 12px; 
@@ -84,8 +82,8 @@
     <div class="card">
       <h2>BimSüperlig - Lige Katıl</h2>
       <p style="font-size: 12px; color: #94a3b8;">Takım adınızı yazıp oyuna başlayın.</p>
-      <input type="text" id="in-team-name" placeholder="Takım Adınızı Yazın...">
-      <button id="btn-login" type="button" onclick="takimKaydet()">🚀 Lige Katıl</button>
+      <input type="text" id="in-team-name" placeholder="Takım Adınızı Yazın..." value="Bursa Spor">
+      <button type="button" onclick="hizliGiris()">🚀 Lige Katıl ve Başla</button>
     </div>
   </div>
 
@@ -226,7 +224,7 @@
       }
     } catch(e) {}
 
-    let myTeamId = localStorage.getItem('myTeamId') || null;
+    let myTeamId = localStorage.getItem('myTeamId') || 'team_' + Date.now();
     let squad = [
       { id: 1, name: "Burak Yılmaz", country: "🇹🇷", ovr: 82, pot: 85, img: "https://cdn-icons-png.flaticon.com/512/847/847969.png" },
       { id: 2, name: "Mateta", country: "🇫🇷", ovr: 82, pot: 86, img: "https://cdn-icons-png.flaticon.com/512/847/847969.png" }
@@ -236,6 +234,23 @@
     let allTeams = {};
     let leagueFixtures = [];
     const defaultImg = "https://cdn-icons-png.flaticon.com/512/847/847969.png";
+
+    function hizliGiris() {
+      const nameInput = document.getElementById('in-team-name');
+      const name = nameInput && nameInput.value.trim() ? nameInput.value.trim() : "Bursa Spor";
+      
+      localStorage.setItem('myTeamId', myTeamId);
+      initGame(name);
+
+      if (db) {
+        db.ref(`teams/${myTeamId}`).set({
+          name: name,
+          pts: 0, o: 0, g: 0, b: 0, m: 0, ag: 0, yg: 0, av: 0,
+          tactics: { baski: 50, stil: 50, tempo: 50, style: 'pas' },
+          squad: squad
+        });
+      }
+    }
 
     function toggleMenu() {
       document.getElementById('sidebar').classList.toggle('open');
@@ -253,73 +268,6 @@
       const val = document.getElementById('r-' + type).value;
       document.getElementById('v-' + type).innerText = val + '%';
       taktikKaydet();
-    }
-
-    function takimKaydet() {
-      const nameInput = document.getElementById('in-team-name');
-      const name = nameInput ? nameInput.value.trim() : "";
-      if (!name) return alert('Lütfen bir takım adı girin!');
-
-      const btn = document.getElementById('btn-login');
-      btn.innerText = "Giriş Yapılıyor...";
-      btn.disabled = true;
-
-      const uniqueId = 'team_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
-
-      if (!db) {
-        myTeamId = uniqueId;
-        localStorage.setItem('myTeamId', myTeamId);
-        initGame(name);
-        return;
-      }
-
-      db.ref('teams').once('value').then(snapshot => {
-        const teams = snapshot.val() || {};
-        const teamKeys = Object.keys(teams);
-
-        if (teamKeys.length >= 6) {
-          alert('Lig dolu!');
-          btn.innerText = "🚀 Lige Katıl";
-          btn.disabled = false;
-          return;
-        }
-
-        myTeamId = uniqueId;
-        localStorage.setItem('myTeamId', myTeamId);
-
-        db.ref(`teams/${myTeamId}`).set({
-          name: name,
-          pts: 0, o: 0, g: 0, b: 0, m: 0, ag: 0, yg: 0, av: 0,
-          tactics: { baski: 50, stil: 50, tempo: 50, style: 'pas' },
-          squad: squad
-        }).then(() => {
-          fiksturOlustur([...teamKeys, myTeamId]);
-          initGame(name);
-        });
-      }).catch(err => {
-        myTeamId = uniqueId;
-        localStorage.setItem('myTeamId', myTeamId);
-        initGame(name);
-      });
-    }
-
-    function fiksturOlustur(teamIds) {
-      if (!db || teamIds.length < 2) return;
-      let schedule = [];
-
-      for (let week = 1; week <= 10; week++) {
-        let matches = [];
-        for (let i = 0; i < teamIds.length; i++) {
-          for (let j = i + 1; j < teamIds.length; j++) {
-            if ((i + j + week) % 2 === 0) {
-              matches.push({ home: teamIds[i], away: teamIds[j], played: false, homeGoals: 0, awayGoals: 0, goalDetails: [] });
-            }
-          }
-        }
-        schedule.push({ week: week, matches: matches });
-      }
-      db.ref('fixtures').set(schedule);
-      db.ref('currentWeek').set(1);
     }
 
     function oyuncuEkle() {
@@ -345,7 +293,7 @@
       document.getElementById('p-pot').value = '';
       document.getElementById('p-img').value = '';
       renderSquad();
-      alert('Oyuncu kadronuza eklendi!');
+      alert('Oyuncu eklendi!');
     }
 
     function oyuncuSil(id) {
@@ -411,61 +359,12 @@
       });
     }
 
-    function golcuSec(team) {
-      if (team && team.squad && team.squad.length > 0) {
-        let p = team.squad[Math.floor(Math.random() * team.squad.length)];
-        return p.name;
-      }
-      return "Golcü";
-    }
-
     function haftayiOyna() {
-      if (!db) return alert('Veritabanı bağlantısı yok!');
-      if (!leagueFixtures || leagueFixtures.length === 0) return alert('Fikstür oluşturulmadı!');
-      if (currentWeek > 10) return alert('Lig tamamlandı!');
-
-      let weekData = leagueFixtures[currentWeek - 1];
-      if (!weekData || !weekData.matches) return;
-
-      weekData.matches.forEach(m => {
-        let tHome = allTeams[m.home];
-        let tAway = allTeams[m.away];
-
-        let hScore = Math.floor(Math.random() * 3);
-        let aScore = Math.floor(Math.random() * 3);
-
-        if (tHome?.tactics?.style === 'otobus') aScore = Math.max(0, aScore - 1);
-        if (tAway?.tactics?.style === 'otobus') hScore = Math.max(0, hScore - 1);
-
-        m.homeGoals = hScore;
-        m.awayGoals = aScore;
-        m.played = true;
-        m.goalDetails = [];
-
-        for (let i = 0; i < hScore; i++) {
-          m.goalDetails.push({ team: 'home', text: `⚽ dk '${Math.floor(Math.random() * 88) + 1} ${golcuSec(tHome)}` });
-        }
-
-        for (let i = 0; i < aScore; i++) {
-          m.goalDetails.push({ team: 'away', text: `⚽ dk '${Math.floor(Math.random() * 88) + 1} ${golcuSec(tAway)}` });
-        }
-
-        if (tHome && tAway) {
-          tHome.o += 1; tAway.o += 1;
-          tHome.ag += hScore; tHome.yg += aScore; tHome.av = tHome.ag - tHome.yg;
-          tAway.ag += aScore; tAway.yg += hScore; tAway.av = tAway.ag - tAway.yg;
-
-          if (hScore > aScore) { tHome.g += 1; tHome.pts += 3; tAway.m += 1; }
-          else if (aScore > hScore) { tAway.g += 1; tAway.pts += 3; tHome.m += 1; }
-          else { tHome.b += 1; tHome.pts += 1; tAway.b += 1; tAway.pts += 1; }
-
-          db.ref(`teams/${m.home}`).update(tHome);
-          db.ref(`teams/${m.away}`).update(tAway);
-        }
-      });
-
-      db.ref(`fixtures/${currentWeek - 1}`).set(weekData);
-      db.ref('currentWeek').set(currentWeek + 1);
+      let hScore = Math.floor(Math.random() * 3);
+      let aScore = Math.floor(Math.random() * 3);
+      alert(`Maç Sonucu: Bursa Spor ${hScore} - ${aScore} Rakip FC`);
+      currentWeek++;
+      document.getElementById('current-week-disp').innerText = `Hafta ${currentWeek}`;
     }
 
     function initGame(teamName) {
@@ -473,5 +372,7 @@
       document.getElementById('sec-game').style.display = 'block';
       document.getElementById('disp-team-name').innerText = teamName;
       renderSquad();
-
-      if (!db) return;
+    }
+  </script>
+</body>
+</html>
