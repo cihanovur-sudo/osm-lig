@@ -94,13 +94,31 @@
 </head>
 <body>
 
-  <!-- DIREKT ANA OYUN EKRANI -->
-  <div id="sec-game">
+  <!-- LOBİ / GİRİŞ EKRANI -->
+  <div class="main-content" id="sec-login">
+    <div class="card" style="text-align: center; max-width: 400px; margin: 40px auto;">
+      <h2 style="font-size:24px; color:#f97316;">🌐 Özel Lig Odası</h2>
+      <p style="font-size: 12px; color: #94a3b8;">Lig odası kodunu ve takım adını yazarak giriş yapın!</p>
+      
+      <div style="text-align:left; margin-top:15px;">
+        <label style="font-size:12px; color:#f97316;"><b>Özel Lig / Oda Adı:</b></label>
+        <input type="text" id="in-league-code" placeholder="Örn: gizlioda123" value="ozeloda1">
+        
+        <label style="font-size:12px; color:#f97316; margin-top:10px; display:block;"><b>Takım Adı:</b></label>
+        <input type="text" id="in-team-name" placeholder="Örn: Trabzonspor" value="Trabzonspor">
+      </div>
+
+      <button type="button" id="btn-start" onclick="startGame()" style="margin-top: 15px;">🚀 Odaya Katıl</button>
+    </div>
+  </div>
+
+  <!-- ANA OYUN EKRANI (Başlangıçta Gizli) -->
+  <div id="sec-game" style="display:none;">
     
     <div class="top-bar">
       <div>
-        <h2 id="disp-team-name">Trabzonspor</h2>
-        <span class="league-badge" id="disp-league-code">Oda: ozeloda1</span>
+        <h2 id="disp-team-name">Takımım</h2>
+        <span class="league-badge" id="disp-league-code">Oda: -</span>
       </div>
       <button type="button" class="menu-btn" onclick="toggleMenu()">☰</button>
     </div>
@@ -194,7 +212,7 @@
       <div id="page-fixtures" style="display:none;">
         <div class="card">
           <h3>📅 Lig Fikstürü</h3>
-          <div id="fixture-list" style="font-size:13px; text-align:center;">Fikstür hazırlanıyor...</div>
+          <div id="fixture-list" style="font-size:13px; text-align:center;">Lobiye katıldığınızda fikstür hazırlanacak...</div>
         </div>
       </div>
 
@@ -250,7 +268,8 @@
   </div>
 
   <script>
-    let myTeamId = 'team_trabzon';
+    let leagueCode = "ozeloda1";
+    let myTeamId = 'team_' + Math.floor(Math.random() * 100000);
     let myTeamName = "Trabzonspor";
     let userLogs = [];
 
@@ -268,13 +287,8 @@
 
     let pitchSlots = { SF: null, OS: null, DEF: null, KL: null };
     let selectedPlayer = null;
-    let allLeagueTeams = {
-      [myTeamId]: { id: myTeamId, name: myTeamName, pts: 0, o: 0, g: 0, b: 0, m: 0, ag: 0, yg: 0 },
-      'rakip_bot': { id: 'rakip_bot', name: "Rakip Bot Takım", pts: 0, o: 0, g: 0, b: 0, m: 0, ag: 0, yg: 0 }
-    };
-    let fixtures = [
-      { round: 1, home: myTeamId, away: 'rakip_bot', played: false, hGoals: 0, aGoals: 0 }
-    ];
+    let allLeagueTeams = {};
+    let fixtures = [];
     
     let simInterval = null;
     let currentMinute = 0;
@@ -282,14 +296,48 @@
     let currentAwayScore = 0;
     let simDelay = 1000;
 
-    // Sayfa açıldığı an her şeyi otomatik yükle
-    window.onload = function() {
+    function startGame() {
+      const lInput = document.getElementById('in-league-code').value.trim();
+      const tInput = document.getElementById('in-team-name').value.trim();
+
+      if (!lInput || !tInput) {
+        alert('Lütfen Oda Adını ve Takım Adını eksiksiz yazın!');
+        return;
+      }
+
+      leagueCode = lInput.toLowerCase();
+      myTeamName = tInput;
+
+      document.getElementById('disp-team-name').innerText = myTeamName;
+      document.getElementById('disp-league-code').innerText = "Oda: " + leagueCode;
+
+      document.getElementById('sec-login').style.display = 'none';
+      document.getElementById('sec-game').style.display = 'block';
+
+      addLog(`Odaya katılma sağlandı. Oda: ${leagueCode}, Takım: ${myTeamName}`);
+
+      allLeagueTeams[myTeamId] = {
+        id: myTeamId, 
+        name: myTeamName,
+        pts: 0, o: 0, g: 0, b: 0, m: 0, ag: 0, yg: 0,
+        squad: squad
+      };
+
+      checkAndGenerateFixtures();
       renderSquad();
       renderTable();
-      renderFixtures();
       renderLogs();
-      addLog("Ana oyun ekranı yüklendi.");
-    };
+    }
+
+    function checkAndGenerateFixtures() {
+      if (fixtures.length === 0) {
+        fixtures = [
+          { round: 1, home: myTeamId, away: 'rakip_bot', played: false, hGoals: 0, aGoals: 0 }
+        ];
+        allLeagueTeams['rakip_bot'] = { id: 'rakip_bot', name: "Rakip Bot Takım", pts: 0, o: 0, g: 0, b: 0, m: 0, ag: 0, yg: 0 };
+        renderFixtures();
+      }
+    }
 
     function addLog(actionText) {
       const now = new Date();
@@ -402,54 +450,4 @@
           <tr>
             <td>${t.name}</td>
             <td>${t.o || 0}</td><td>${t.g || 0}</td><td>${t.b || 0}</td><td>${t.m || 0}</td>
-            <td>${t.ag || 0}</td><td>${t.yg || 0}</td><td style="color:#f97316;">${t.pts || 0}</td>
-          </tr>
-        `;
-      });
-    }
-
-    function renderFixtures() {
-      const container = document.getElementById('fixture-list');
-      if (!container) return;
-      container.innerHTML = '';
-      fixtures.forEach((f) => {
-        const hName = allLeagueTeams[f.home] ? allLeagueTeams[f.home].name : f.home;
-        const aName = allLeagueTeams[f.away] ? allLeagueTeams[f.away].name : f.away;
-        container.innerHTML += `<div style="padding:10px; border-bottom:1px solid #3a506b;"><b>Hafta ${f.round}:</b> ${hName} vs ${aName}</div>`;
-      });
-    }
-
-    function startMatchSimulation() {
-      const modal = document.getElementById('live-match-modal');
-      if(modal) modal.style.display = 'block';
-
-      currentMinute = 0;
-      currentHomeScore = 0;
-      currentAwayScore = 0;
-      
-      const clockEl = document.getElementById('m-clock');
-      const scoreEl = document.getElementById('m-score');
-      const commEl = document.getElementById('m-commentary');
-      const closeSimBtn = document.getElementById('btn-close-sim');
-
-      if(clockEl) clockEl.innerText = "00'";
-      if(scoreEl) scoreEl.innerText = "0 - 0";
-      if(commEl) commEl.innerHTML = '<div class="comment-line">🎙️ Hakem düdüğünü çaldı ve maç başladı!</div>';
-      if(closeSimBtn) closeSimBtn.style.display = 'none';
-
-      document.getElementById('m-home-name').innerText = myTeamName;
-      document.getElementById('m-away-name').innerText = "Rakip Bot";
-
-      runSimulation();
-    }
-
-    function runSimulation() {
-      if (simInterval) clearInterval(simInterval);
-      simInterval = setInterval(() => {
-        currentMinute += 3;
-        if (currentMinute > 90) currentMinute = 90;
-        
-        const clockEl = document.getElementById('m-clock');
-        if(clockEl) clockEl.innerText = currentMinute + "'";
-
-        if (Math.random() < 0.15 && currentMinute < 90) {
+            <td>${t.ag || 0}</td><td>${t.yg || 0
