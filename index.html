@@ -6,148 +6,202 @@
   <title>BimSüperlig - OSM Style Online</title>
   <style>
     * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-    body { background: #0f172a; color: #fff; margin: 0; padding: 15px; }
+    body { background: #0f172a; color: #fff; margin: 0; padding: 0; overflow-x: hidden; }
+    
+    /* ÜST BAR (NAVBAR) */
+    .top-bar { 
+      background: #1e293b; padding: 15px 20px; display: flex; 
+      justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; 
+      position: sticky; top: 0; z-index: 100;
+    }
+    .top-bar h2 { margin: 0; color: #22c55e; font-size: 18px; }
+    .menu-btn { background: transparent; border: none; color: #22c55e; font-size: 26px; cursor: pointer; padding: 0; width: auto; }
+
+    .main-content { padding: 15px; }
     .card { background: #1e293b; padding: 15px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #334155; }
-    h2, h3, h4 { color: #22c55e; margin-top: 0; }
+    h3, h4 { color: #22c55e; margin-top: 0; }
     input, select, button { width: 100%; padding: 12px; margin: 6px 0; border-radius: 8px; border: 1px solid #475569; background: #0f172a; color: #fff; font-size: 14px; }
     button { background: #22c55e; font-weight: bold; cursor: pointer; border: none; color: #000; font-size: 16px; }
     button:active { transform: scale(0.98); }
     button.danger { background: #ef4444; color: #fff; }
-    button.sim-btn { background: #f59e0b; color: #000; font-size: 15px; }
+    button.sim-btn { background: #f59e0b; color: #000; font-size: 16px; font-weight: bold; padding: 15px; }
 
-    /* 4 OYUNCULU SAHA TASARIMI */
+    /* YAN MENÜ (SIDEBAR) */
+    .sidebar {
+      position: fixed; top: 0; right: -280px; width: 280px; height: 100%;
+      background: #0f172a; border-left: 2px solid #22c55e; z-index: 200;
+      transition: right 0.3s ease; padding: 20px; box-shadow: -5px 0 15px rgba(0,0,0,0.5);
+    }
+    .sidebar.open { right: 0; }
+    .sidebar-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; padding-bottom: 10px; }
+    .sidebar-header h3 { margin: 0; }
+    .close-btn { background: transparent; color: #ef4444; border: none; font-size: 22px; cursor: pointer; width: auto; }
+    .menu-list { list-style: none; padding: 0; margin-top: 20px; }
+    .menu-list li { padding: 12px; margin: 8px 0; background: #1e293b; border-radius: 8px; cursor: pointer; border-left: 4px solid #22c55e; font-weight: bold; transition: background 0.2s; }
+    .menu-list li:hover { background: #334155; }
+
+    /* SAHA VE PITCH */
     .pitch { 
       background: linear-gradient(180deg, #15803d 0%, #166534 100%); 
-      border: 3px solid #fff; 
-      height: 420px; 
-      border-radius: 12px; 
-      position: relative; 
-      margin: 10px 0;
-      overflow: hidden;
-      box-shadow: inset 0 0 50px rgba(0,0,0,0.5);
+      border: 3px solid #fff; height: 380px; border-radius: 12px; 
+      position: relative; margin: 10px 0; overflow: hidden;
     }
-    
     .pitch::before { content: ''; position: absolute; top: 50%; left: 0; right: 0; height: 2px; background: rgba(255,255,255,0.4); }
-    .pitch::after { content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90px; height: 90px; border: 2px solid rgba(255,255,255,0.4); border-radius: 50%; }
+    .pitch::after { content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80px; height: 80px; border: 2px solid rgba(255,255,255,0.4); border-radius: 50%; }
 
     .slot { 
-      position: absolute; width: 85px; height: 85px; 
-      background: rgba(15, 23, 42, 0.8); border: 2px dashed #22c55e; 
-      border-radius: 10px; text-align: center; font-size: 11px; 
+      position: absolute; width: 80px; height: 80px; 
+      background: rgba(15, 23, 42, 0.85); border: 2px dashed #22c55e; 
+      border-radius: 10px; text-align: center; font-size: 10px; 
       display: flex; flex-direction: column; align-items: center; justify-content: center;
       transition: all 0.2s; color: #a7f3d0; font-weight: bold; cursor: pointer;
     }
-    .slot.filled {
-      border: 2px solid #22c55e;
-      background: linear-gradient(135deg, #15803d 0%, #052e16 100%);
-      box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-    }
-    .slot img { width: 38px; height: 38px; border-radius: 50%; object-fit: cover; border: 1.5px solid #fff; margin-bottom: 2px; }
-    .slot .p-name { font-weight: bold; font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; color: #fff; }
-    .slot .p-ovr { background: #22c55e; color: #000; font-weight: bold; padding: 1px 5px; border-radius: 3px; font-size: 10px; }
+    .slot.filled { border: 2px solid #22c55e; background: linear-gradient(135deg, #15803d 0%, #052e16 100%); }
+    .slot img { width: 34px; height: 34px; border-radius: 50%; object-fit: cover; border: 1.5px solid #fff; margin-bottom: 2px; }
 
-    .pos-SF { top: 20px; left: calc(50% - 42.5px); }
-    .pos-OS { top: 120px; left: calc(50% - 42.5px); }
-    .pos-DEF { bottom: 120px; left: calc(50% - 42.5px); }
-    .pos-KL  { bottom: 20px; left: calc(50% - 42.5px); }
+    .pos-SF { top: 15px; left: calc(50% - 40px); }
+    .pos-OS { top: 110px; left: calc(50% - 40px); }
+    .pos-DEF { bottom: 110px; left: calc(50% - 40px); }
+    .pos-KL  { bottom: 15px; left: calc(50% - 40px); }
 
     .player-card { background: #334155; padding: 10px; border-radius: 6px; margin: 6px 0; font-size: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #475569; cursor: pointer; }
-    .player-card.selected { border: 2px solid #22c55e; background: #1e293b; }
+    .player-card.selected { border: 2px solid #22c55e; background: #0f172a; }
     .player-card img { width: 32px; height: 32px; border-radius: 50%; margin-right: 8px; object-fit: cover; }
     .player-list { max-height: 250px; overflow-y: auto; background: #0f172a; padding: 8px; border-radius: 6px; }
     .flag { font-size: 16px; margin-right: 6px; }
 
-    .slider-val { font-weight: bold; color: #22c55e; }
     table { width: 100%; border-collapse: collapse; font-size: 13px; text-align: center; }
-    th, td { border: 1px solid #334155; padding: 6px; }
+    th, td { border: 1px solid #334155; padding: 8px; }
     th { background: #0f172a; color: #22c55e; }
-    
     .fixture-item { background: #334155; padding: 10px; border-radius: 6px; margin: 6px 0; font-size: 13px; text-align: center; border-left: 4px solid #22c55e; }
     .goal-list { font-size: 11px; color: #cbd5e1; margin-top: 6px; border-top: 1px dashed #475569; padding-top: 4px; }
-    .goal-item { margin: 2px 0; }
   </style>
 </head>
 <body>
 
   <!-- LOBİ / TAKIM GİRİŞİ -->
-  <div class="card" id="sec-login">
-    <h2>BimSüperlig - Lige Katıl</h2>
-    <p style="font-size: 12px; color: #94a3b8;">Takım adınızı yazıp oyuna başlayın (Online Lig).</p>
-    <input type="text" id="in-team-name" placeholder="Takım Adınızı Yazın...">
-    <button id="btn-login" type="button" onclick="takimKaydet()">🚀 Lige Katıl</button>
+  <div class="main-content" id="sec-login">
+    <div class="card">
+      <h2>BimSüperlig - Lige Katıl</h2>
+      <p style="font-size: 12px; color: #94a3b8;">Takım adınızı yazıp oyuna başlayın.</p>
+      <input type="text" id="in-team-name" placeholder="Takım Adınızı Yazın...">
+      <button id="btn-login" type="button" onclick="takimKaydet()">🚀 Lige Katıl</button>
+    </div>
   </div>
 
   <!-- ANA OYUN EKRANI -->
   <div id="sec-game" style="display:none;">
     
-    <div class="card">
+    <!-- ÜST BAR -->
+    <div class="top-bar">
       <h2 id="disp-team-name">Takımım</h2>
-      <p style="font-size:12px; color:#22c55e;">💡 <b>İpucu:</b> Kadronuzdaki oyuncuya dokunun, ardından sahadaki pozisyona dokunun!</p>
+      <button class="menu-btn" onclick="toggleMenu()">☰</button>
+    </div>
+
+    <!-- YAN MENÜ -->
+    <div class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <h3>Menü</h3>
+        <button class="close-btn" onclick="toggleMenu()">✕</button>
+      </div>
+      <ul class="menu-list">
+        <li onclick="showPage('home')">🏠 Ana Ekran (Saha)</li>
+        <li onclick="showPage('squad')">📋 Kadro & Oyuncu Ekle</li>
+        <li onclick="showPage('tactics')">🎯 Taktikler</li>
+        <li onclick="showPage('fixture')">📅 Fikstür</li>
+        <li onclick="showPage('table')">📊 Puan Durumu</li>
+      </ul>
+    </div>
+
+    <div class="main-content">
       
-      <div class="pitch">
-        <div class="slot pos-SF" id="slot-SF" onclick="slotSec('SF')">FORVET</div>
-        <div class="slot pos-OS" id="slot-OS" onclick="slotSec('OS')">ORTA SAHA</div>
-        <div class="slot pos-DEF" id="slot-DEF" onclick="slotSec('DEF')">DEFANS</div>
-        <div class="slot pos-KL" id="slot-KL" onclick="slotSec('KL')">KALECİ</div>
+      <!-- PAGE 1: ANA EKRAN & SAHA -->
+      <div id="page-home">
+        <div class="card">
+          <button class="sim-btn" type="button" onclick="haftayiOyna()">⚡ Bu Haftanın Maçını Simüle Et</button>
+        </div>
+
+        <div class="card">
+          <h3>4'lü Saha Dizilimi</h3>
+          <p style="font-size:11px; color:#22c55e;">💡 Kadrodan oyuncuya dokunun, ardından saha kutusuna dokunun!</p>
+          <div class="pitch">
+            <div class="slot pos-SF" id="slot-SF" onclick="slotSec('SF')">FORVET</div>
+            <div class="slot pos-OS" id="slot-OS" onclick="slotSec('OS')">ORTA SAHA</div>
+            <div class="slot pos-DEF" id="slot-DEF" onclick="slotSec('DEF')">DEFANS</div>
+            <div class="slot pos-KL" id="slot-KL" onclick="slotSec('KL')">KALECİ</div>
+          </div>
+        </div>
       </div>
-    </div>
 
-    <!-- TAKIM KADROSU VE YENİ OYUNCU EKLEME -->
-    <div class="card">
-      <h3>Takım Kadrosu (<span id="player-count">0</span>/16)</h3>
-      <div class="player-list" id="squad-container"></div>
+      <!-- PAGE 2: KADRO VE OYUNCU EKLEME -->
+      <div id="page-squad" style="display:none;">
+        <div class="card">
+          <h3>Takım Kadrosu (<span id="player-count">0</span>/16)</h3>
+          <div class="player-list" id="squad-container"></div>
+        </div>
 
-      <h4 style="margin-top:15px;">Kadroya Yeni Oyuncu Ekle</h4>
-      <input type="text" id="p-name" placeholder="Oyuncu Adı (Örn: Mateta)">
-      <input type="text" id="p-country" placeholder="Ülke Bayrağı veya Kodu (ZORUNLU - Örn: 🇫🇷 veya FR)">
-      <input type="number" id="p-ovr" placeholder="Overall (Örn: 82)">
-      <input type="number" id="p-pot" placeholder="Potansiyel (Örn: 86)">
-      <input type="text" id="p-img" placeholder="Fotoğraf URL'si (İsteğe bağlı)">
-      <button type="button" onclick="oyuncuEkle()">Kadroya Oyuncu Ekle</button>
-    </div>
-
-    <div class="card">
-      <h3>OSM Taktikler</h3>
-      <label><b>Oyun Stili:</b></label>
-      <select id="t-style" onchange="taktikKaydet()">
-        <option value="pas">⚽ Paslaşarak Oyun</option>
-        <option value="kontra">⚡ Hızlı Kontra Atak</option>
-        <option value="uzun">🚀 Uzun Top</option>
-        <option value="kgv">🎯 Kaleyi Görünce Vur</option>
-        <option value="kanat">📐 Kanatları Kullan</option>
-        <option value="otobus">🚌 Otobüsü Park Et</option>
-      </select>
-
-      <div style="margin-top:12px;">
-        <label>Baskı: <span id="v-baski" class="slider-val">50%</span></label>
-        <input type="range" id="r-baski" min="0" max="100" value="50" oninput="updateSlider('baski')">
+        <div class="card">
+          <h3>Kadroya Yeni Oyuncu Ekle</h3>
+          <input type="text" id="p-name" placeholder="Oyuncu Adı (Örn: Mateta)">
+          <input type="text" id="p-country" placeholder="Ülke Bayrağı/Kodu (ZORUNLU - Örn: 🇫🇷)">
+          <input type="number" id="p-ovr" placeholder="Overall (Örn: 82)">
+          <input type="number" id="p-pot" placeholder="Potansiyel (Örn: 86)">
+          <input type="text" id="p-img" placeholder="Fotoğraf URL'si (İsteğe bağlı)">
+          <button type="button" onclick="oyuncuEkle()">Kadroya Oyuncu Ekle</button>
+        </div>
       </div>
-      <div>
-        <label>Stil: <span id="v-stil" class="slider-val">50%</span></label>
-        <input type="range" id="r-stil" min="0" max="100" value="50" oninput="updateSlider('stil')">
+
+      <!-- PAGE 3: TAKTİKLER -->
+      <div id="page-tactics" style="display:none;">
+        <div class="card">
+          <h3>OSM Taktikler</h3>
+          <label><b>Oyun Stili:</b></label>
+          <select id="t-style" onchange="taktikKaydet()">
+            <option value="pas">⚽ Paslaşarak Oyun</option>
+            <option value="kontra">⚡ Hızlı Kontra Atak</option>
+            <option value="uzun">🚀 Uzun Top</option>
+            <option value="kgv">🎯 Kaleyi Görünce Vur</option>
+            <option value="kanat">📐 Kanatları Kullan</option>
+            <option value="otobus">🚌 Otobüsü Park Et</option>
+          </select>
+
+          <div style="margin-top:12px;">
+            <label>Baskı: <span id="v-baski" style="color:#22c55e;">50%</span></label>
+            <input type="range" id="r-baski" min="0" max="100" value="50" oninput="updateSlider('baski')">
+          </div>
+          <div>
+            <label>Stil: <span id="v-stil" style="color:#22c55e;">50%</span></label>
+            <input type="range" id="r-stil" min="0" max="100" value="50" oninput="updateSlider('stil')">
+          </div>
+          <div>
+            <label>Tempo: <span id="v-tempo" style="color:#22c55e;">50%</span></label>
+            <input type="range" id="r-tempo" min="0" max="100" value="50" oninput="updateSlider('tempo')">
+          </div>
+        </div>
       </div>
-      <div>
-        <label>Tempo: <span id="v-tempo" class="slider-val">50%</span></label>
-        <input type="range" id="r-tempo" min="0" max="100" value="50" oninput="updateSlider('tempo')">
+
+      <!-- PAGE 4: FİKSTÜR -->
+      <div id="page-fixture" style="display:none;">
+        <div class="card">
+          <h3>Lig Fikstürü (<span id="current-week-disp">Hafta 1</span>)</h3>
+          <div id="fixture-container" style="margin-top:10px;"></div>
+        </div>
       </div>
-    </div>
 
-    <div class="card">
-      <h3>Lig Fikstürü (<span id="current-week-disp">Hafta 1</span>)</h3>
-      <button class="sim-btn" id="btn-sim" type="button" onclick="haftayiOyna()">⚡ Bu Haftanın Maçlarını Simüle Et</button>
-      <div id="fixture-container" style="margin-top:10px;"></div>
-    </div>
+      <!-- PAGE 5: PUAN DURUMU -->
+      <div id="page-table" style="display:none;">
+        <div class="card">
+          <h3>Lig Puan Durumu</h3>
+          <table>
+            <thead>
+              <tr><th>Takım</th><th>O</th><th>G</th><th>B</th><th>M</th><th>AG</th><th>YG</th><th>AV</th><th>P</th></tr>
+            </thead>
+            <tbody id="league-table"></tbody>
+          </table>
+        </div>
+      </div>
 
-    <div class="card">
-      <h3>Lig Puan Durumu</h3>
-      <table>
-        <thead>
-          <tr><th>Takım</th><th>O</th><th>G</th><th>B</th><th>M</th><th>AG</th><th>YG</th><th>AV</th><th>P</th></tr>
-        </thead>
-        <tbody id="league-table"></tbody>
-      </table>
     </div>
-
   </div>
 
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -182,6 +236,18 @@
     let allTeams = {};
     let leagueFixtures = [];
     const defaultImg = "https://cdn-icons-png.flaticon.com/512/847/847969.png";
+
+    function toggleMenu() {
+      document.getElementById('sidebar').classList.toggle('open');
+    }
+
+    function showPage(pageId) {
+      const pages = ['home', 'squad', 'tactics', 'fixture', 'table'];
+      pages.forEach(p => {
+        document.getElementById('page-' + p).style.display = (p === pageId) ? 'block' : 'none';
+      });
+      toggleMenu();
+    }
 
     function updateSlider(type) {
       const val = document.getElementById('r-' + type).value;
@@ -257,7 +323,7 @@
     }
 
     function oyuncuEkle() {
-      if (squad.length >= 16) return alert('Kadro limitiniz dolu! (Maksimum 16 oyuncu)');
+      if (squad.length >= 16) return alert('Kadro limitiniz dolu!');
 
       const name = document.getElementById('p-name').value.trim();
       const country = document.getElementById('p-country').value.trim();
@@ -266,9 +332,8 @@
       const img = document.getElementById('p-img').value.trim() || defaultImg;
 
       if (!name) return alert('Lütfen oyuncu adını girin!');
-      if (!country) return alert('Ülke bilgisi (bayrak veya kodu) ZORUNLUDUR!');
-      if (isNaN(ovr) || isNaN(pot)) return alert('Lütfen overall ve potansiyel değerlerini sayı olarak girin!');
-      if (ovr > pot) return alert('Mevcut overall potansiyelden büyük olamaz!');
+      if (!country) return alert('Ülke bilgisi ZORUNLUDUR!');
+      if (isNaN(ovr) || isNaN(pot)) return alert('Overall ve potansiyel sayı olmalıdır!');
 
       const newPlayer = { id: Date.now(), name, country, ovr, pot, img };
       squad.push(newPlayer);
@@ -280,6 +345,7 @@
       document.getElementById('p-pot').value = '';
       document.getElementById('p-img').value = '';
       renderSquad();
+      alert('Oyuncu kadronuza eklendi!');
     }
 
     function oyuncuSil(id) {
@@ -294,14 +360,14 @@
     }
 
     function slotSec(pos) {
-      if (!selectedPlayer) return alert('Önce kadronuzdan bir oyuncuya dokunarak seçin!');
+      if (!selectedPlayer) return alert('Önce Kadro sayfasından bir oyuncuya dokunun!');
       
       const slotEl = document.getElementById(`slot-${pos}`);
       slotEl.classList.add('filled');
       slotEl.innerHTML = `
         <img src="${selectedPlayer.img}" onerror="this.src='${defaultImg}'">
-        <div class="p-name">${selectedPlayer.country} ${selectedPlayer.name}</div>
-        <div class="p-ovr">${selectedPlayer.ovr}</div>
+        <div style="font-size:9px; font-weight:bold;">${selectedPlayer.country} ${selectedPlayer.name}</div>
+        <div style="background:#22c55e; color:#000; padding:1px 4px; border-radius:3px;">${selectedPlayer.ovr}</div>
       `;
       selectedPlayer = null;
       renderSquad();
@@ -313,7 +379,7 @@
       container.innerHTML = '';
 
       if (squad.length === 0) {
-        container.innerHTML = '<p style="font-size:12px; color:#aaa; text-align:center;">Kadronuzda henüz oyuncu yok. Aşağıdan ekleyebilirsiniz.</p>';
+        container.innerHTML = '<p style="font-size:12px; color:#aaa; text-align:center;">Kadronuz boş.</p>';
         return;
       }
 
@@ -355,7 +421,7 @@
 
     function haftayiOyna() {
       if (!db) return alert('Veritabanı bağlantısı yok!');
-      if (!leagueFixtures || leagueFixtures.length === 0) return alert('Fikstür bulunamadı!');
+      if (!leagueFixtures || leagueFixtures.length === 0) return alert('Fikstür oluşturulmadı!');
       if (currentWeek > 10) return alert('Lig tamamlandı!');
 
       let weekData = leagueFixtures[currentWeek - 1];
@@ -409,79 +475,3 @@
       renderSquad();
 
       if (!db) return;
-
-      db.ref('teams').on('value', snapshot => {
-        allTeams = snapshot.val() || {};
-        const table = document.getElementById('league-table');
-        table.innerHTML = '';
-        
-        let sortedTeams = Object.values(allTeams).sort((a,b) => b.pts - a.pts || b.av - a.av);
-
-        sortedTeams.forEach(t => {
-          table.innerHTML += `
-            <tr>
-              <td><b>${t.name}</b></td>
-              <td>${t.o}</td>
-              <td>${t.g}</td>
-              <td>${t.b}</td>
-              <td>${t.m}</td>
-              <td>${t.ag}</td>
-              <td>${t.yg}</td>
-              <td>${t.av}</td>
-              <td><b>${t.pts}</b></td>
-            </tr>`;
-        });
-      });
-
-      db.ref('currentWeek').on('value', snapshot => {
-        currentWeek = snapshot.val() || 1;
-        document.getElementById('current-week-disp').innerText = currentWeek <= 10 ? `Hafta ${currentWeek}` : 'Lig Bitti';
-      });
-
-      db.ref('fixtures').on('value', snapshot => {
-        leagueFixtures = snapshot.val() || [];
-        const container = document.getElementById('fixture-container');
-        container.innerHTML = '';
-
-        if (leagueFixtures.length === 0) {
-          container.innerHTML = '<p style="font-size:12px; color:#aaa;">Lige takımlar katıldıkça fikstür güncellenecektir.</p>';
-          return;
-        }
-
-        let weekMatches = leagueFixtures[Math.min(currentWeek - 1, 9)]?.matches || [];
-        weekMatches.forEach(m => {
-          let hName = allTeams[m.home]?.name || 'Takım';
-          let aName = allTeams[m.away]?.name || 'Takım';
-          let score = m.played ? `<b>${m.homeGoals} - ${m.awayGoals}</b>` : 'vs';
-
-          let goalsHtml = '';
-          if (m.played && m.goalDetails && m.goalDetails.length > 0) {
-            goalsHtml = '<div class="goal-list">';
-            m.goalDetails.forEach(g => {
-              let tName = g.team === 'home' ? hName : aName;
-              goalsHtml += `<div class="goal-item">${g.text} (${tName})</div>`;
-            });
-            goalsHtml += '</div>';
-          }
-
-          container.innerHTML += `
-            <div class="fixture-item">
-              <div><b>${hName}</b> ${score} <b>${aName}</b></div>
-              ${goalsHtml}
-            </div>`;
-        });
-      });
-    }
-
-    if (myTeamId && db) {
-      db.ref(`teams/${myTeamId}`).once('value', snapshot => {
-        if (snapshot.exists()) {
-          const tData = snapshot.val();
-          if (tData.squad) squad = tData.squad;
-          initGame(tData.name);
-        }
-      });
-    }
-  </script>
-</body>
-</html>
