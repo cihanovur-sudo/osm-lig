@@ -272,7 +272,13 @@
     let leagueCode = "ozeloda1";
     let myTeamId = 'team_' + Math.floor(Math.random() * 100000);
     let myTeamName = "Trabzonspor";
-    let userLogs = JSON.parse(localStorage.getItem('userLogs')) || [];
+    let userLogs = [];
+
+    // LocalStorage güvenli yükleme
+    try {
+      let savedLogs = localStorage.getItem('userLogs');
+      if (savedLogs) userLogs = JSON.parse(savedLogs);
+    } catch(e) { userLogs = []; }
 
     let squad = [
       { id: 1, name: "Burak Yılmaz", country: "🇹🇷", ovr: 82, pot: 85 },
@@ -296,7 +302,9 @@
       const now = new Date();
       const timeStr = now.toTimeString().split(' ')[0];
       userLogs.unshift({ time: timeStr, text: actionText });
-      localStorage.setItem('userLogs', JSON.stringify(userLogs));
+      try {
+        localStorage.setItem('userLogs', JSON.stringify(userLogs));
+      } catch(e) {}
       renderLogs();
     }
 
@@ -315,7 +323,7 @@
 
     function clearLogs() {
       userLogs = [];
-      localStorage.removeItem('userLogs');
+      try { localStorage.removeItem('userLogs'); } catch(e) {}
       renderLogs();
     }
 
@@ -353,7 +361,6 @@
     }
 
     function checkAndGenerateFixtures() {
-      let teams = Object.values(allLeagueTeams);
       if (fixtures.length === 0) {
         fixtures = [
           { round: 1, home: myTeamId, away: 'rakip_bot', played: false, hGoals: 0, aGoals: 0 }
@@ -392,7 +399,7 @@
 
     function oyuncuEkl() {
       const name = document.getElementById('p-name').value.trim();
-      const country = document.getElementById('p-country').value.trim() || '🏳️';
+      const country = document.getElementById('p-country').value.trim() || '🏳️️';
       const ovr = parseInt(document.getElementById('p-ovr').value);
       const pot = parseInt(document.getElementById('p-pot').value);
 
@@ -425,7 +432,8 @@
     }
 
     function toggleMenu() {
-      document.getElementById('sidebar').classList.toggle('open');
+      const sb = document.getElementById('sidebar');
+      if(sb) sb.classList.toggle('open');
     }
 
     function showPage(pageId) {
@@ -433,7 +441,8 @@
         const el = document.getElementById(`page-${p}`);
         if (el) el.style.display = p === pageId ? 'block' : 'none';
       });
-      document.getElementById('sidebar').classList.remove('open');
+      const sb = document.getElementById('sidebar');
+      if(sb) sb.classList.remove('open');
     }
 
     function renderTable() {
@@ -445,12 +454,4 @@
           <tr>
             <td>${t.name}</td>
             <td>${t.o || 0}</td><td>${t.g || 0}</td><td>${t.b || 0}</td><td>${t.m || 0}</td>
-            <td>${t.ag || 0}</td><td>${t.yg || 0}</td><td style="color:#f97316;">${t.pts || 0}</td>
-          </tr>
-        `;
-      });
-    }
-
-    function renderFixtures() {
-      const container = document.getElementById('fixture-list');
-  
+            <td>${t.ag || 0}</td><td>
