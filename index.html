@@ -4,9 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bim Süper Lig - OSM Tarzı Menajerlik</title>
-    <!-- Firebase SDKs -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
     <style>
         :root {
             --primary: #ff6600;
@@ -70,7 +67,7 @@
             color: white;
         }
 
-        /* Sidebar (3 Çizgi Menü) */
+        /* Sidebar */
         .sidebar {
             position: fixed;
             top: 0;
@@ -126,7 +123,7 @@
             cursor: pointer;
         }
 
-        .sidebar-menu li a:hover, .sidebar-menu li a.active {
+        .sidebar-menu li a:hover {
             background-color: var(--primary);
             color: white;
         }
@@ -205,18 +202,18 @@
             background-color: var(--primary-dark);
         }
 
-        /* Saha Dizilim Alanı */
+        /* Saha */
         .pitch {
             background: linear-gradient(to bottom, #2e7d32, #1b5e20);
             border: 2px solid #ffffff;
             border-radius: 10px;
-            height: 400px;
+            height: 350px;
             position: relative;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            gap: 30px;
+            gap: 20px;
             padding: 20px;
         }
 
@@ -232,15 +229,14 @@
             background-color: rgba(0,0,0,0.8);
             border: 1px dashed var(--primary);
             color: white;
-            padding: 10px;
+            padding: 12px;
             border-radius: 6px;
             font-size: 0.85rem;
             text-align: center;
-            width: 85px;
+            width: 100px;
             cursor: pointer;
         }
 
-        /* Kadro Listesi */
         .squad-list {
             display: flex;
             flex-direction: column;
@@ -260,7 +256,6 @@
             font-size: 0.9rem;
         }
 
-        /* Canlı Maç Ekranı */
         .match-scorecard {
             display: flex;
             justify-content: space-around;
@@ -318,7 +313,7 @@
         <button class="menu-btn" onclick="toggleMenu()">☰</button>
     </header>
 
-    <!-- Yan Menü (Sidebar) -->
+    <!-- Yan Menü -->
     <div class="overlay" id="overlay" onclick="toggleMenu()"></div>
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
@@ -335,7 +330,7 @@
     </div>
 
     <main>
-        <!-- 1. LOBİ GİRİŞİ -->
+        <!-- 1. LOBİ -->
         <section id="lobby-view" class="view-section active">
             <div class="card">
                 <h2>Oda ve Takım Seçimi</h2>
@@ -347,7 +342,7 @@
             </div>
         </section>
 
-        <!-- 2. SAHA & KADRO (4 OYUNCU) -->
+        <!-- 2. SAHA & KADRO -->
         <section id="squad-view" class="view-section">
             <div class="card">
                 <h2>İlk 11 (4 Asıl Oyuncu)</h2>
@@ -444,8 +439,9 @@
             fixtures: []
         };
 
-        window.onload = function() {
-            const savedData = localStorage.getItem('bimSuperLigSave_v4');
+        // Sayfa yüklendiğinde hafızadan verileri çek
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedData = localStorage.getItem('bimSuperLigSave_v5');
             if (savedData) {
                 try {
                     gameState = JSON.parse(savedData);
@@ -455,10 +451,10 @@
                 } catch(e) { console.error("Kayıt yüklenemedi", e); }
             }
             updateUI();
-        };
+        });
 
         function saveGame() {
-            localStorage.setItem('bimSuperLigSave_v4', JSON.stringify(gameState));
+            localStorage.setItem('bimSuperLigSave_v5', JSON.stringify(gameState));
         }
 
         function toggleMenu() {
@@ -470,7 +466,10 @@
 
         function switchView(viewId) {
             document.querySelectorAll('.view-section').forEach(sec => {
-                sec.classList.toggle('active', sec.id === viewId);
+                sec.classList.remove('active');
+                if(sec.id === viewId) {
+                    sec.classList.add('active');
+                }
             });
             toggleMenu(); 
         }
@@ -506,8 +505,14 @@
         function addPlayer() {
             const input = document.getElementById('newPlayerName');
             const name = input.value.trim();
-            if(!name) return alert("Oyuncu adı boş olamaz!");
-            if(gameState.players.length >= 16) return alert("Maksimum 16 oyuncu sınırına ulaştınız!");
+            if(!name) {
+                alert("Oyuncu adı boş olamaz!");
+                return;
+            }
+            if(gameState.players.length >= 16) {
+                alert("Maksimum 16 oyuncu sınırına ulaştınız!");
+                return;
+            }
 
             gameState.players.push(name);
             input.value = "";
@@ -516,7 +521,10 @@
         }
 
         function assignPlayerToSlot(slotIndex) {
-            if(gameState.players.length === 0) return alert("Önce oyuncu havuzuna oyuncu ekleyin!");
+            if(gameState.players.length === 0) {
+                alert("Önce oyuncu havuzuna oyuncu ekleyin!");
+                return;
+            }
             let playerListStr = gameState.players.join("\n");
             let chosen = prompt("İlk 11'e koymak istediğiniz oyuncunun adını yazın:\n\n" + playerListStr);
             if(chosen && gameState.players.includes(chosen)) {
@@ -529,7 +537,7 @@
         function saveTactics() {
             gameState.tactic = document.getElementById('playStyle').value;
             saveGame();
-            alert("Taktikleriniz (Kaleyi Gördüğünde Vur vb.) kaydedildi!");
+            alert("Taktikleriniz kaydedildi!");
         }
 
         function hashCode(str) {
@@ -578,25 +586,30 @@
         }
 
         function updateUI() {
+            // Oyuncu listesi
             const listContainer = document.getElementById('squadListContainer');
-            listContainer.innerHTML = "";
-            gameState.players.forEach((p, idx) => {
-                listContainer.innerHTML += `<div class="squad-item"><span>${idx+1}. ${p}</span></div>`;
-            });
+            if(listContainer) {
+                listContainer.innerHTML = "";
+                gameState.players.forEach((p, idx) => {
+                    listContainer.innerHTML += `<div class="squad-item"><span>${idx+1}. ${p}</span></div>`;
+                });
+            }
 
+            // Slotlar
             for(let i=0; i<4; i++) {
                 let slotElem = document.getElementById(`slot-${i}`);
-                if(gameState.lineup[i]) {
-                    slotElem.innerText = gameState.lineup[i];
-                    slotElem.style.border = "1px solid var(--primary)";
-                } else {
-                    slotElem.innerText = `Slot ${i+1} (Boş)`;
+                if(slotElem) {
+                    if(gameState.lineup[i]) {
+                        slotElem.innerText = gameState.lineup[i];
+                        slotElem.style.border = "1px solid var(--primary)";
+                    } else {
+                        slotElem.innerText = `Slot ${i+1} (Boş)`;
+                    }
                 }
             }
 
+            // Puan Tablosu
             const tbody = document.getElementById('leagueTableBody');
-            tbody.innerHTML = "";
-            const teams = Object.keys(gameState.table);
-            if(teams.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" style="text-align: center;">Henüz veri yok.</td></tr>`;
-            } else 
+            if(tbody) {
+                tbody.innerHTML = "";
+                const teams = Object.keys(gameState.ta
