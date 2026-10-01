@@ -9,12 +9,14 @@
     body { background: #0f172a; color: #fff; margin: 0; padding: 15px; }
     .card { background: #1e293b; padding: 15px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #334155; }
     h2, h3, h4 { color: #22c55e; margin-top: 0; }
-    input, select, button { width: 100%; padding: 10px; margin: 5px 0; border-radius: 6px; border: 1px solid #475569; background: #0f172a; color: #fff; }
-    button { background: #22c55e; font-weight: bold; cursor: pointer; border: none; color: #000; font-size: 16px; }
-    button:hover { background: #16a34a; color: #fff; }
+    input, select, button { width: 100%; padding: 12px; margin: 6px 0; border-radius: 8px; border: 1px solid #475569; background: #0f172a; color: #fff; font-size: 14px; }
+    button { background: #22c55e; font-weight: bold; cursor: pointer; border: none; color: #000; font-size: 16px; transition: all 0.2s; }
+    button:active { transform: scale(0.98); }
     button.danger { background: #ef4444; color: #fff; }
     button.sim-btn { background: #f59e0b; color: #000; font-size: 15px; }
+    button.direct-btn { background: #3b82f6; color: #fff; margin-top: 10px; }
 
+    /* OSM 11'Lİ SAHA TASARIMI */
     .pitch { 
       background: linear-gradient(180deg, #15803d 0%, #166534 100%); 
       border: 3px solid #fff; 
@@ -45,6 +47,7 @@
     .slot .p-name { font-weight: bold; font-size: 9px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; color: #fff; }
     .slot .p-ovr { background: #22c55e; color: #000; font-weight: bold; padding: 1px 4px; border-radius: 3px; font-size: 9px; }
 
+    /* Formasyon Pozisyonları */
     .pos-KL  { bottom: 10px; left: calc(50% - 37.5px); }
     .pos-SLB { bottom: 85px; left: 10px; }
     .pos-STP1{ bottom: 80px; left: 28%; }
@@ -57,7 +60,7 @@
     .pos-SF  { top: 50px; left: calc(50% - 37.5px); }
     .pos-SĞA { top: 70px; right: 12%; }
 
-    .player-card { background: #334155; padding: 8px; border-radius: 6px; margin: 5px 0; cursor: grab; font-size: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #475569; }
+    .player-card { background: #334155; padding: 8px; border-radius: 6px; margin: 5px 0; font-size: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #475569; }
     .player-card img { width: 32px; height: 32px; border-radius: 50%; margin-right: 8px; object-fit: cover; }
     .player-list { max-height: 250px; overflow-y: auto; background: #0f172a; padding: 8px; border-radius: 6px; }
     
@@ -77,9 +80,9 @@
   <div class="card" id="sec-login">
     <h2>BimSüperlig - Lige Katıl</h2>
     <p style="font-size: 12px; color: #94a3b8;">Maksimum 6 Takım katılabilir.</p>
-    <input type="text" id="in-team-name" placeholder="Takım Adınızı Yazın...">
-    <button id="btn-login" type="button" onclick="takimKaydet()">Lige Katıl</button>
-    <p id="login-msg" style="color: #f59e0b; font-size: 13px; text-align: center; margin-top: 8px; display: none;"></p>
+    <input type="text" id="in-team-name" placeholder="Takım Adınızı Yazın..." value="Benim Takımım">
+    <button id="btn-login" type="button" onclick="takimKaydet()">Lige Katıl (Çevrimiçi)</button>
+    <button class="direct-btn" type="button" onclick="direktOyunaGir()">⚡ Doğrudan Oyuna Geç (Hızlı Giriş)</button>
   </div>
 
   <!-- ANA OYUN EKRANI -->
@@ -183,7 +186,7 @@
         firebase.initializeApp(firebaseConfig);
         db = firebase.database();
       }
-    } catch(e) { console.warn("Firebase hatasi:", e); }
+    } catch(e) {}
 
     let myTeamId = localStorage.getItem('myTeamId') || null;
     let squad = [];
@@ -192,6 +195,13 @@
     let leagueFixtures = [];
     const defaultImg = "https://cdn-icons-png.flaticon.com/512/847/847969.png";
 
+    function direktOyunaGir() {
+      const name = document.getElementById('in-team-name').value.trim() || "Süper Takım";
+      myTeamId = 'team_' + Date.now();
+      localStorage.setItem('myTeamId', myTeamId);
+      initGame(name);
+    }
+
     function updateSlider(type) {
       const val = document.getElementById('r-' + type).value;
       document.getElementById('v-' + type).innerText = val + '%';
@@ -199,49 +209,19 @@
     }
 
     function takimKaydet() {
-      const nameInput = document.getElementById('in-team-name');
-      const name = nameInput ? nameInput.value.trim() : "";
-      if (!name) return alert('Lütfen bir takım adı girin!');
-
-      const btn = document.getElementById('btn-login');
-      const msg = document.getElementById('login-msg');
+      const name = document.getElementById('in-team-name').value.trim() || "Süper Takım";
       
-      btn.innerText = "Giriş Yapılıyor...";
-      btn.disabled = true;
-      if (msg) {
-        msg.style.display = "block";
-        msg.innerText = "Giriş yapılıyor, lütfen bekleyin...";
-      }
-
-      let isDone = false;
-      const forceStart = () => {
-        if (!isDone) {
-          isDone = true;
-          myTeamId = 'team_' + Date.now();
-          localStorage.setItem('myTeamId', myTeamId);
-          initGame(name);
-        }
-      };
-
-      // 1 saniye içinde yanıt gelmezse doğrudan oyuna yönlendir
-      setTimeout(forceStart, 1000);
-
       if (!db) {
-        forceStart();
+        direktOyunaGir();
         return;
       }
 
       db.ref('teams').once('value').then(snapshot => {
-        if (isDone) return;
-        isDone = true;
-
         const teams = snapshot.val() || {};
         const teamKeys = Object.keys(teams);
         if (teamKeys.length >= 6) {
-          alert('Lig dolu! Maksimum 6 takım katılabilir.');
-          btn.innerText = "Lige Katıl";
-          btn.disabled = false;
-          if (msg) msg.style.display = "none";
+          alert('Lig dolu! Doğrudan moda geçiliyor.');
+          direktOyunaGir();
           return;
         }
 
@@ -259,8 +239,8 @@
             fiksturOlustur(Object.keys({...teams, [myTeamId]: true}));
           }
           initGame(name);
-        }).catch(() => initGame(name));
-      }).catch(() => forceStart());
+        }).catch(() => direktOyunaGir());
+      }).catch(() => direktOyunaGir());
     }
 
     function fiksturOlustur(teamIds) {
@@ -324,8 +304,6 @@
       squad.forEach(p => {
         const el = document.createElement('div');
         el.className = 'player-card';
-        el.draggable = true;
-        el.ondragstart = (e) => e.dataTransfer.setData("text/plain", JSON.stringify(p));
         el.innerHTML = `
           <div style="display:flex; align-items:center;">
             <img src="${p.img}" onerror="this.src='${defaultImg}'">
@@ -373,8 +351,14 @@
     }
 
     function haftayiOyna() {
-      if (!db) return alert('Veritabanı bağlantısı henüz kurulmadı!');
-      if (!leagueFixtures || leagueFixtures.length === 0) return alert('Lig henüz 6 takıma ulaşmadı, fikstür bekleniyor!');
+      if (!leagueFixtures || leagueFixtures.length === 0) {
+        // Yerel simülasyon testi
+        let hScore = Math.floor(Math.random() * 3);
+        let aScore = Math.floor(Math.random() * 3);
+        const container = document.getElementById('fixture-container');
+        container.innerHTML = `<div class="fixture-item"><b>Takımım ${hScore} - ${aScore} Rakip Takım</b><br><small>⚽ dk '${Math.floor(Math.random()*80)+1} ${golcuSec({squad:squad})}</small></div>`;
+        return;
+      }
       if (currentWeek > 10) return alert('Lig tamamlandı!');
 
       let weekData = leagueFixtures[currentWeek - 1];
@@ -389,8 +373,6 @@
 
         if (tHome?.tactics?.style === 'otobus') aScore = Math.max(0, aScore - 1);
         if (tAway?.tactics?.style === 'otobus') hScore = Math.max(0, hScore - 1);
-        if (tHome?.tactics?.style === 'kgv') hScore += Math.floor(Math.random() * 2);
-        if (tAway?.tactics?.style === 'kgv') aScore += Math.floor(Math.random() * 2);
 
         m.homeGoals = hScore;
         m.awayGoals = aScore;
@@ -398,13 +380,11 @@
         m.goalDetails = [];
 
         for (let i = 0; i < hScore; i++) {
-          let min = Math.floor(Math.random() * 88) + 1;
-          m.goalDetails.push({ team: 'home', text: `⚽ dk '${min} ${golcuSec(tHome)}` });
+          m.goalDetails.push({ team: 'home', text: `⚽ dk '${Math.floor(Math.random() * 88) + 1} ${golcuSec(tHome)}` });
         }
 
         for (let i = 0; i < aScore; i++) {
-          let min = Math.floor(Math.random() * 88) + 1;
-          m.goalDetails.push({ team: 'away', text: `⚽ dk '${min} ${golcuSec(tAway)}` });
+          m.goalDetails.push({ team: 'away', text: `⚽ dk '${Math.floor(Math.random() * 88) + 1} ${golcuSec(tAway)}` });
         }
 
         if (tHome && tAway) {
@@ -416,13 +396,17 @@
           else if (aScore > hScore) { tAway.g += 1; tAway.pts += 3; tHome.m += 1; }
           else { tHome.b += 1; tHome.pts += 1; tAway.b += 1; tAway.pts += 1; }
 
-          db.ref(`teams/${m.home}`).update(tHome);
-          db.ref(`teams/${m.away}`).update(tAway);
+          if (db) {
+            db.ref(`teams/${m.home}`).update(tHome);
+            db.ref(`teams/${m.away}`).update(tAway);
+          }
         }
       });
 
-      db.ref(`fixtures/${currentWeek - 1}`).set(weekData);
-      db.ref('currentWeek').set(currentWeek + 1);
+      if (db) {
+        db.ref(`fixtures/${currentWeek - 1}`).set(weekData);
+        db.ref('currentWeek').set(currentWeek + 1);
+      }
     }
 
     function initGame(teamName) {
@@ -462,4 +446,15 @@
 
       db.ref('fixtures').on('value', snapshot => {
         leagueFixtures = snapshot.val() || [];
-        const container = document.getElementById('
+        const container = document.getElementById('fixture-container');
+        container.innerHTML = '';
+
+        if (leagueFixtures.length === 0) {
+          container.innerHTML = '<p style="font-size:12px; color:#aaa;">6 takım katıldığında fikstür otomatik oluşturulacak.</p>';
+          return;
+        }
+
+        let weekMatches = leagueFixtures[Math.min(currentWeek - 1, 9)]?.matches || [];
+        weekMatches.forEach(m => {
+          let hName = allTeams[m.home]?.name || 'Takım';
+          let aName = allTeams[m.away]?.name
