@@ -482,33 +482,32 @@
             fixtures: []
         };
 
-        // Tüm mantıksal fonksiyonları global kapsama net bir şekilde sabitleyelim
-        window.toggleMenu = function() {
+        function saveGame() {
+            try {
+                localStorage.setItem('bimSuperLigSave_v8', JSON.stringify(gameState));
+            } catch(e) { console.error("Kayıt hatası", e); }
+        }
+
+        function toggleMenu() {
             const sidebar = document.getElementById('sidebar');
             const overlay = document.getElementById('overlay');
             if(sidebar && overlay) {
                 sidebar.classList.toggle('open');
                 overlay.classList.toggle('show');
             }
-        };
+        }
 
-        window.switchView = function(viewId) {
+        function switchView(viewId) {
             document.querySelectorAll('.view-section').forEach(sec => {
                 sec.classList.remove('active');
                 if(sec.id === viewId) {
                     sec.classList.add('active');
                 }
             });
-            window.toggleMenu();
-        };
+            toggleMenu();
+        }
 
-        window.saveGame = function() {
-            try {
-                localStorage.setItem('bimSuperLigSave_v7', JSON.stringify(gameState));
-            } catch(e) { console.error("Kayıt hatası", e); }
-        };
-
-        window.joinRoom = function() {
+        function joinRoom() {
             const codeInput = document.getElementById('roomCodeInput');
             const teamInput = document.getElementById('teamNameInput');
             if(!codeInput || !teamInput) return;
@@ -535,13 +534,13 @@
                 ];
             }
 
-            window.saveGame();
-            window.updateUI();
+            saveGame();
+            updateUI();
             alert(`Odaya başarıyla katıldınız: ${team} (${code})`);
-            window.switchView('squad-view');
-        };
+            switchView('squad-view');
+        }
 
-        window.addPlayer = function() {
+        function addPlayer() {
             const input = document.getElementById('newPlayerName');
             if(!input) return;
             const name = input.value.trim();
@@ -556,11 +555,11 @@
 
             gameState.players.push(name);
             input.value = "";
-            window.saveGame();
-            window.updateUI();
-        };
+            saveGame();
+            updateUI();
+        }
 
-        window.assignPlayerToSlot = function(slotIndex) {
+        function assignPlayerToSlot(slotIndex) {
             if(gameState.players.length === 0) {
                 alert("Önce oyuncu havuzuna oyuncu ekleyin!");
                 return;
@@ -569,12 +568,12 @@
             let chosen = prompt("İlk 11'e koymak istediğiniz oyuncunun adını yazın:\n\n" + playerListStr);
             if(chosen && gameState.players.includes(chosen)) {
                 gameState.lineup[slotIndex] = chosen;
-                window.saveGame();
-                window.updateUI();
+                saveGame();
+                updateUI();
             }
-        };
+        }
 
-        window.saveTactics = function() {
+        function saveTactics() {
             const playStyle = document.getElementById('playStyle');
             const rangePress = document.getElementById('rangePress');
             const rangeTempo = document.getElementById('rangeTempo');
@@ -585,20 +584,20 @@
             if(rangeTempo) gameState.tempo = parseInt(rangeTempo.value);
             if(rangeAggression) gameState.aggression = parseInt(rangeAggression.value);
             
-            window.saveGame();
+            saveGame();
             alert("Taktikler, Baskı, Tempo ve Agresiflik ayarları başarıyla kaydedildi!");
-        };
+        }
 
-        window.hashCode = function(str) {
+        function hashCode(str) {
             let hash = 0;
             for (let i = 0; i < str.length; i++) {
                 hash = (hash << 5) - hash + str.charCodeAt(i);
                 hash |= 0;
             }
             return Math.abs(hash);
-        };
+        }
 
-        window.startMatchSimulation = function() {
+        function startMatchSimulation() {
             const commentaryBox = document.getElementById('commentaryBox');
             const homeTeamLbl = document.getElementById('homeTeamLbl');
             const awayTeamLbl = document.getElementById('awayTeamLbl');
@@ -614,7 +613,7 @@
 
             commentaryBox.innerHTML = `<div class="comment-item">0' Maç başladı! (Baskı: ${gameState.press}%, Tempo: ${gameState.tempo}%, Agresiflik: ${gameState.aggression}%)</div>`;
 
-            let seed = window.hashCode(gameState.roomCode + homeTeam + gameState.press);
+            let seed = hashCode(gameState.roomCode + homeTeam + gameState.press);
             let homeGoals = seed % 4;
             let awayGoals = (seed >> 2) % 3;
 
@@ -623,4 +622,8 @@
             }, 1500);
 
             setTimeout(() => {
-                if(scoreLbl) scoreLbl.innerTe
+                if(scoreLbl) scoreLbl.innerText = `${homeGoals} - ${awayGoals}`;
+                commentaryBox.innerHTML += `<div class="comment-item">90' Maç bitti! Sonuç: ${homeTeam} ${homeGoals} - ${awayGoals} ${awayTeam}</div>`;
+
+                if(!gameState.table[homeTeam]) {
+    
