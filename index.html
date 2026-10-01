@@ -589,4 +589,45 @@
                 if(!gameState.table[homeTeam]) {
                     gameState.table[homeTeam] = { p: 0, o: 0, g: 0, b: 0, m: 0 };
                 }
-                let stats = gameStat
+                let stats = gameState.table[homeTeam];
+                stats.o += 1;
+                if(homeGoals > awayGoals) { stats.g += 1; stats.p += 3; }
+                else if(homeGoals === awayGoals) { stats.b += 1; stats.p += 1; }
+                else { stats.m += 1; }
+
+                saveGame();
+                updateTableUI();
+            }, 3000);
+        }
+
+        // Puan Tablosunu HTML'e Yansıtma
+        function updateTableUI() {
+            const tbody = document.getElementById('leagueTableBody');
+            tbody.innerHTML = "";
+
+            const teams = Object.keys(gameState.table);
+            if(teams.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align: center;">Henüz veri yok.</td></tr>`;
+                return;
+            }
+
+            // Puanı yüksek olanı üste sırala
+            teams.sort((a, b) => gameState.table[b].p - gameState.table[a].p);
+
+            teams.forEach(team => {
+                let s = gameState.table[team];
+                tbody.innerHTML += `
+                    <tr>
+                        <td><b>${team}</b></td>
+                        <td>${s.o}</td>
+                        <td>${s.g}</td>
+                        <td>${s.b}</td>
+                        <td>${s.m}</td>
+                        <td><b>${s.p}</b></td>
+                    </tr>
+                `;
+            });
+        }
+    </script>
+</body>
+</html>
