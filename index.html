@@ -612,4 +612,24 @@
             const tbody = document.getElementById('leagueTableBody');
             if(tbody) {
                 tbody.innerHTML = "";
-                const teams = Object.keys(gameState.ta
+                const teams = Object.keys(gameState.table);
+                if(teams.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="6" style="text-align: center;">Henüz veri yok.</td></tr>`;
+                } else {
+                    teams.sort((a, b) => gameState.table[b].p - gameState.table[a].p);
+                    teams.forEach(team => {
+                        let s = gameState.table[team];
+                        tbody.innerHTML += `<tr><td><b>${team}</b></td><td>${s.o}</td><td>${s.g}</td><td>${s.b}</td><td>${s.m}</td><td><b>${s.p}</b></td></tr>`;
+                    });
+                }
+            }
+
+            // Fikstür
+            const fixContainer = document.getElementById('fixtureContainer');
+            if(fixContainer && gameState.fixtures.length > 0) {
+                fixContainer.innerHTML = gameState.fixtures.map(f => `<div>📌 ${f}</div>`).join('');
+            }
+        }
+    </script>
+</body>
+</html>
