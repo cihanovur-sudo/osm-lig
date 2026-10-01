@@ -21,7 +21,7 @@
     .card { background: #1c2541; padding: 15px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #3a506b; }
     h3, h4 { color: #f97316; margin-top: 0; }
     input, select, button { width: 100%; padding: 12px; margin: 6px 0; border-radius: 8px; border: 1px solid #3a506b; background: #0b132b; color: #fff; font-size: 14px; }
-    button { background: #f97316; font-weight: bold; cursor: pointer; border: none; color: #fff; font-size: 16px; transition: 0.2s; }
+    button { background: #f97316; font-weight: bold; cursor: pointer; border: none; color: #fff; font-size: 16px; transition: 0.2s; position: relative; z-index: 50; }
     button:active { transform: scale(0.98); }
     button.danger { background: #ef4444; color: #fff; }
     button.sim-btn { background: #f97316; color: #fff; font-size: 16px; font-weight: bold; padding: 15px; box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3); }
@@ -109,7 +109,8 @@
         <input type="text" id="in-team-name" placeholder="Örn: Trabzonspor" value="Trabzonspor">
       </div>
 
-      <button type="button" id="btn-start">🚀 Odaya Katıl</button>
+      <!-- Doğrudan onclick tanımlandı, böylece tıklama asla kaçmaz -->
+      <button type="button" id="btn-start" onclick="startGame()">🚀 Odaya Katıl</button>
     </div>
   </div>
 
@@ -121,13 +122,13 @@
         <h2 id="disp-team-name">Takımım</h2>
         <span class="league-badge" id="disp-league-code">Oda: -</span>
       </div>
-      <button type="button" class="menu-btn" id="btn-open-menu">☰</button>
+      <button type="button" class="menu-btn" id="btn-open-menu" onclick="toggleMenu()">☰</button>
     </div>
 
     <div class="sidebar" id="sidebar">
       <div class="sidebar-header">
         <h3>Menü</h3>
-        <button type="button" class="close-btn" id="btn-close-menu">✕</button>
+        <button type="button" class="close-btn" id="btn-close-menu" onclick="toggleMenu()">✕</button>
       </div>
       <ul class="menu-list">
         <li data-page="home">🏠 Saha & Kadro</li>
@@ -144,17 +145,17 @@
       <!-- PAGE 1: SAHA -->
       <div id="page-home">
         <div class="card">
-          <button class="sim-btn" type="button" id="btn-sim-match">⚡ Sıradaki Maçı Simüle Et (Canlı İzle)</button>
+          <button class="sim-btn" type="button" id="btn-sim-match" onclick="startMatchSimulation()">⚡ Sıradaki Maçı Simüle Et (Canlı İzle)</button>
         </div>
 
         <div class="card">
           <h3>4'lü Saha Dizilimi</h3>
           <p style="font-size:11px; color:#f97316;">💡 Oyuncuya dokunun, ardından sahadaki pozisyona yerleştirin.</p>
           <div class="pitch">
-            <div class="slot pos-SF" id="slot-SF">FORVET</div>
-            <div class="slot pos-OS" id="slot-OS">ORTA SAHA</div>
-            <div class="slot pos-DEF" id="slot-DEF">DEFANS</div>
-            <div class="slot pos-KL" id="slot-KL">KALECİ</div>
+            <div class="slot pos-SF" id="slot-SF" onclick="slotSec('SF')">FORVET</div>
+            <div class="slot pos-OS" id="slot-OS" onclick="slotSec('OS')">ORTA SAHA</div>
+            <div class="slot pos-DEF" id="slot-DEF" onclick="slotSec('DEF')">DEFANS</div>
+            <div class="slot pos-KL" id="slot-KL" onclick="slotSec('KL')">KALECİ</div>
           </div>
         </div>
 
@@ -177,7 +178,7 @@
           <input type="text" id="p-country" placeholder="Ülke Bayrağı (Örn: 🇫🇷)">
           <input type="number" id="p-ovr" placeholder="Overall (Örn: 82)">
           <input type="number" id="p-pot" placeholder="Potansiyel (Örn: 86)">
-          <button type="button" id="btn-add-p">Kadroya Oyuncu Ekle</button>
+          <button type="button" id="btn-add-p" onclick="oyuncuEkl()">Kadroya Oyuncu Ekle</button>
         </div>
       </div>
 
@@ -238,7 +239,7 @@
           <div class="log-box" id="log-container">
             <div class="log-item">Henüz hiçbir işlem kaydı yok...</div>
           </div>
-          <button type="button" class="danger" style="margin-top: 10px;" id="btn-clear-logs">🗑️ Log Geçmişini Temizle</button>
+          <button type="button" class="danger" style="margin-top: 10px;" id="btn-clear-logs" onclick="clearLogs()">🗑️ Log Geçmişini Temizle</button>
         </div>
       </div>
 
@@ -261,12 +262,12 @@
     </div>
 
     <div class="speed-controls">
-      <button type="button" class="speed-btn active" id="sp-1">1x Hız</button>
-      <button type="button" class="speed-btn" id="sp-2">2x Hız</button>
-      <button type="button" class="speed-btn" id="sp-4">4x Hız</button>
+      <button type="button" class="speed-btn active" id="sp-1" onclick="changeSpeed(1000, 'sp-1')">1x Hız</button>
+      <button type="button" class="speed-btn" id="sp-2" onclick="changeSpeed(500, 'sp-2')">2x Hız</button>
+      <button type="button" class="speed-btn" id="sp-4" onclick="changeSpeed(250, 'sp-4')">4x Hız</button>
     </div>
 
-    <button type="button" id="btn-close-sim" style="margin-top:15px; display:none; background:#22c55e;">Maçı Tamamla ve Menüye Dön</button>
+    <button type="button" id="btn-close-sim" onclick="closeMatchModal()" style="margin-top:15px; display:none; background:#22c55e;">Maçı Tamamla ve Menüye Dön</button>
   </div>
 
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -347,6 +348,12 @@
           </div>
         `;
       });
+    }
+
+    function clearLogs() {
+      userLogs = [];
+      localStorage.removeItem('userLogs');
+      renderLogs();
     }
 
     function startGame() {
@@ -431,7 +438,7 @@
       squad.forEach(p => {
         const isSel = selectedPlayer && selectedPlayer.id === p.id;
         const cardHTML = `
-          <div class="player-card ${isSel ? 'selected' : ''}" data-id="${p.id}">
+          <div class="player-card ${isSel ? 'selected' : ''}" onclick="selectPlayerById(${p.id})">
             <div><b>${p.country} ${p.name}</b></div>
             <div>OVR: <b>${p.ovr}</b> | POT: <b>${p.pot}</b></div>
           </div>
@@ -440,14 +447,11 @@
         if(squadCont) squadCont.innerHTML += cardHTML;
         if(homeCont) homeCont.innerHTML += cardHTML;
       });
+    }
 
-      document.querySelectorAll('.player-card').forEach(el => {
-        el.onclick = function() {
-          const pId = parseInt(this.getAttribute('data-id'));
-          selectedPlayer = squad.find(x => x.id === pId);
-          renderSquad();
-        };
-      });
+    function selectPlayerById(pId) {
+      selectedPlayer = squad.find(x => x.id === pId);
+      renderSquad();
     }
 
     function oyuncuEkl() {
@@ -464,18 +468,4 @@
       squad.push(newP);
 
       document.getElementById('p-name').value = '';
-      document.getElementById('p-country').value = '';
-      document.getElementById('p-ovr').value = '';
-      document.getElementById('p-pot').value = '';
-
-      addLog(`Kadroya yeni oyuncu eklendi: ${name} (${ovr})`);
-      renderSquad();
-
-      if (db) {
-        db.ref(`leagues/${leagueCode}/teams/${myTeamId}/squad`).set(squad);
-      }
-    }
-
-    function slotSec(pos) {
-      if (!selectedPlayer) {
-        return alert('Lütfen önce aşağıdaki listeden bir oyuncu seçin
+     
