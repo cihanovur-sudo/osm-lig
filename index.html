@@ -19,7 +19,7 @@
     .pitch { 
       background: linear-gradient(180deg, #15803d 0%, #166534 100%); 
       border: 3px solid #fff; 
-      height: 520px; 
+      height: 540px; 
       border-radius: 12px; 
       position: relative; 
       margin: 10px 0;
@@ -32,43 +32,42 @@
 
     .slot { 
       position: absolute; width: 75px; height: 75px; 
-      background: rgba(15, 23, 42, 0.7); border: 2px dashed #22c55e; 
+      background: rgba(15, 23, 42, 0.75); border: 2px dashed #22c55e; 
       border-radius: 8px; text-align: center; font-size: 10px; 
       display: flex; flex-direction: column; align-items: center; justify-content: center;
-      transition: all 0.2s;
+      transition: all 0.2s; color: #a7f3d0; font-weight: bold;
     }
     .slot.filled {
       border: 2px solid #22c55e;
       background: linear-gradient(135deg, #15803d 0%, #052e16 100%);
       box-shadow: 0 4px 10px rgba(0,0,0,0.5);
     }
-    .slot img { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 1px solid #fff; margin-bottom: 2px; }
+    .slot img { width: 34px; height: 34px; border-radius: 50%; object-fit: cover; border: 1.5px solid #fff; margin-bottom: 2px; }
     .slot .p-name { font-weight: bold; font-size: 9px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; color: #fff; }
     .slot .p-ovr { background: #22c55e; color: #000; font-weight: bold; padding: 1px 4px; border-radius: 3px; font-size: 9px; }
 
     /* Formasyon Pozisyonları */
     .pos-KL  { bottom: 10px; left: calc(50% - 37.5px); }
-    .pos-SLB { bottom: 80px; left: 10px; }
-    .pos-STP1{ bottom: 75px; left: 28%; }
-    .pos-STP2{ bottom: 75px; right: 28%; }
-    .pos-SGB { bottom: 80px; right: 10px; }
-    .pos-DOS { bottom: 160px; left: calc(50% - 37.5px); }
+    .pos-SLB { bottom: 85px; left: 10px; }
+    .pos-STP1{ bottom: 80px; left: 28%; }
+    .pos-STP2{ bottom: 80px; right: 28%; }
+    .pos-SGB { bottom: 85px; right: 10px; }
+    .pos-DOS { bottom: 170px; left: calc(50% - 37.5px); }
     .pos-OS1 { top: 210px; left: 22%; }
     .pos-OS2 { top: 210px; right: 22%; }
-    .pos-SFL { top: 70px; left: 15%; }
+    .pos-SFL { top: 70px; left: 12%; }
     .pos-SF  { top: 50px; left: calc(50% - 37.5px); }
-    .pos-SĞA { top: 70px; right: 15%; }
+    .pos-SĞA { top: 70px; right: 12%; }
 
-    .player-card { background: #334155; padding: 8px; border-radius: 6px; margin: 5px 0; cursor: grab; font-size: 12px; display: flex; justify-content: space-between; align-items: center; }
-    .player-card img { width: 30px; height: 30px; border-radius: 50%; margin-right: 8px; }
-    .player-list { max-height: 220px; overflow-y: auto; background: #0f172a; padding: 8px; border-radius: 6px; }
+    .player-card { background: #334155; padding: 8px; border-radius: 6px; margin: 5px 0; cursor: grab; font-size: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #475569; }
+    .player-card img { width: 32px; height: 32px; border-radius: 50%; margin-right: 8px; object-fit: cover; }
+    .player-list { max-height: 250px; overflow-y: auto; background: #0f172a; padding: 8px; border-radius: 6px; }
     
     .slider-val { font-weight: bold; color: #22c55e; }
     table { width: 100%; border-collapse: collapse; font-size: 13px; text-align: center; }
     th, td { border: 1px solid #334155; padding: 6px; }
     th { background: #0f172a; color: #22c55e; }
     
-    /* Fikstür & Gol Kutuları */
     .fixture-item { background: #334155; padding: 10px; border-radius: 6px; margin: 6px 0; font-size: 13px; text-align: center; border-left: 4px solid #22c55e; }
     .goal-list { font-size: 11px; color: #cbd5e1; margin-top: 6px; border-top: 1px dashed #475569; padding-top: 4px; }
     .goal-item { margin: 2px 0; }
@@ -90,7 +89,7 @@
     <!-- SAHA VE KADRO DİZİLİŞİ -->
     <div class="card">
       <h2 id="disp-team-name">Takımım</h2>
-      <p style="font-size:12px; color:#94a3b8;">Oyuncularınızı 11'li yeşil sahaya sürükleyip kadronuzu kurun.</p>
+      <p style="font-size:12px; color:#94a3b8;">Aşağıdaki kadronuzdan oyuncuları sürükleyip sahaya yerleştirin.</p>
       
       <div class="pitch">
         <div class="slot pos-SF" id="slot-SF" ondrop="drop(event, 'SF')" ondragover="allowDrop(event)">SF</div>
@@ -110,42 +109,42 @@
       </div>
     </div>
 
-    <!-- 16 OYUNCULU KADRO YÖNETİMİ -->
+    <!-- KADRO YÖNETİMİ & OYUNCULAR -->
     <div class="card">
-      <h3>Kadro Yönetimi (<span id="player-count">0</span>/16)</h3>
+      <h3>Takım Kadrosu (<span id="player-count">0</span>/16)</h3>
       <div class="player-list" id="squad-container"></div>
 
-      <h4 style="margin-top:15px;">Yeni Oyuncu Ekle (Fotoğraflı)</h4>
+      <h4 style="margin-top:15px;">Yeni Oyuncu Ekle</h4>
       <input type="text" id="p-name" placeholder="Oyuncu Adı (Örn: Burak Yılmaz)">
       <input type="number" id="p-ovr" placeholder="Mevcut Overall (Örn: 80)">
       <input type="number" id="p-pot" placeholder="Potansiyel (Örn: 87)">
-      <input type="text" id="p-img" placeholder="Fotoğraf URL'si (Opsiyonel)">
-      <button onclick="oyuncuEkle()">Oyuncu Ekle</button>
+      <input type="text" id="p-img" placeholder="Fotoğraf URL'si (İsteğe bağlı)">
+      <button onclick="oyuncuEkle()">Kadroya Oyuncu Ekle</button>
     </div>
 
     <!-- OSM OYUN PLANLARI VE TAKTİKLER -->
     <div class="card">
-      <h3>OSM Taktikleri & Oyun Planı</h3>
-      <label>Oyun Stili / Planı:</label>
+      <h3>OSM Oyun Planları & Taktikler</h3>
+      <label><b>Oyun Stili / Taktik Planı:</b></label>
       <select id="t-style" onchange="taktikKaydet()">
-        <option value="pas">Paslaşarak Oyun</option>
-        <option value="kontra">Hızlı Kontra Atak</option>
-        <option value="uzun">Uzun Top</option>
-        <option value="kgv">Kaleyi Görünce Vur 🎯</option>
-        <option value="kanat">Kanatları Kullan 📐</option>
-        <option value="otobus">Otobüsü Park Et 🚌</option>
+        <option value="pas">⚽ Paslaşarak Oyun</option>
+        <option value="kontra">⚡ Hızlı Kontra Atak</option>
+        <option value="uzun">🚀 Uzun Top</option>
+        <option value="kgv">🎯 Kaleyi Görünce Vur</option>
+        <option value="kanat">📐 Kanatları Kullan</option>
+        <option value="otobus">🚌 Otobüsü Park Et</option>
       </select>
 
-      <div style="margin-top:10px;">
-        <label>Baskı: <span id="v-baski" class="slider-val">50%</span></label>
+      <div style="margin-top:12px;">
+        <label>Baskı (Rakibe Pres): <span id="v-baski" class="slider-val">50%</span></label>
         <input type="range" id="r-baski" min="0" max="100" value="50" oninput="updateSlider('baski')">
       </div>
       <div>
-        <label>Stil (Hücum/Savunma): <span id="v-stil" class="slider-val">50%</span></label>
+        <label>Stil (Hücum / Savunma): <span id="v-stil" class="slider-val">50%</span></label>
         <input type="range" id="r-stil" min="0" max="100" value="50" oninput="updateSlider('stil')">
       </div>
       <div>
-        <label>Tempo: <span id="v-tempo" class="slider-val">50%</span></label>
+        <label>Tempo (Pas Hızı): <span id="v-tempo" class="slider-val">50%</span></label>
         <input type="range" id="r-tempo" min="0" max="100" value="50" oninput="updateSlider('tempo')">
       </div>
     </div>
@@ -257,7 +256,7 @@
       if (!name || !ovr || !pot) return alert('Lütfen isim, overall ve potansiyel bilgilerini girin!');
       if (ovr > pot) return alert('Mevcut overall potansiyelden büyük olamaz!');
 
-      const newPlayer = { id: Date.now(), name, ovr, pot, img, form: 100 };
+      const newPlayer = { id: Date.now(), name, ovr, pot, img };
       squad.push(newPlayer);
       db.ref(`teams/${myTeamId}/squad`).set(squad);
 
@@ -279,53 +278,67 @@
       document.getElementById('player-count').innerText = squad.length;
       container.innerHTML = '';
 
+      if (squad.length === 0) {
+        container.innerHTML = '<p style="font-size:12px; color:#aaa; text-align:center;">Henüz kadronuzda oyuncu yok. Aşağıdan oyuncu ekleyin.</p>';
+        return;
+      }
+
       squad.forEach(p => {
         const el = document.createElement('div');
         el.className = 'player-card';
         el.draggable = true;
-        el.ondragstart = (e) => e.dataTransfer.setData("text", JSON.stringify(p));
+        el.ondragstart = (e) => e.dataTransfer.setData("text/plain", JSON.stringify(p));
         el.innerHTML = `
           <div style="display:flex; align-items:center;">
             <img src="${p.img}" onerror="this.src='${defaultImg}'">
             <span><b>${p.name}</b> (OVR: ${p.ovr} / POT: ${p.pot})</span>
           </div>
-          <button class="danger" style="width:auto; padding:4px 8px;" onclick="oyuncuSil(${p.id})">Sil</button>
+          <button class="danger" style="width:auto; padding:4px 8px; font-size:11px;" onclick="oyuncuSil(${p.id})">Sil</button>
         `;
         container.appendChild(el);
       });
     }
 
     function allowDrop(ev) { ev.preventDefault(); }
+    
     function drop(ev, pos) {
       ev.preventDefault();
-      const data = JSON.parse(ev.dataTransfer.getData("text"));
-      const slotEl = document.getElementById(`slot-${pos}`);
-      
-      slotEl.classList.add('filled');
-      slotEl.innerHTML = `
-        <img src="${data.img}" onerror="this.src='${defaultImg}'">
-        <div class="p-name">${data.name}</div>
-        <div class="p-ovr">${data.ovr}</div>
-      `;
+      try {
+        const data = JSON.parse(ev.dataTransfer.getData("text/plain"));
+        const slotEl = document.getElementById(`slot-${pos}`);
+        
+        slotEl.classList.add('filled');
+        slotEl.innerHTML = `
+          <img src="${data.img}" onerror="this.src='${defaultImg}'">
+          <div class="p-name">${data.name}</div>
+          <div class="p-ovr">${data.ovr}</div>
+        `;
+      } catch (err) {
+        console.log("Sürükleme hatası:", err);
+      }
     }
 
     function taktikKaydet() {
       if (!myTeamId) return;
+      const baski = document.getElementById('r-baski').value;
+      const stil = document.getElementById('r-stil').value;
+      const tempo = document.getElementById('r-tempo').value;
+      const style = document.getElementById('t-style').value;
+
       db.ref(`teams/${myTeamId}/tactics`).set({
-        baski: document.getElementById('r-baski').value,
-        stil: document.getElementById('r-stil').value,
-        tempo: document.getElementById('r-tempo').value,
-        style: document.getElementById('t-style').value
+        baski: baski,
+        stil: stil,
+        tempo: tempo,
+        style: style
       });
     }
 
-    // Gol Yazan Rastgele Oyuncu Seçici
     function golcuSec(team) {
       if (team && team.squad && team.squad.length > 0) {
         let p = team.squad[Math.floor(Math.random() * team.squad.length)];
         return p.name;
       }
-      return "Forvet";
+      return "Oyuncu";
     }
 
     function haftayiOyna() {
@@ -342,22 +355,22 @@
         let hScore = Math.floor(Math.random() * 3);
         let aScore = Math.floor(Math.random() * 3);
 
-        if (tHome && tHome.tactics && tHome.tactics.style === 'otobus') aScore = Math.max(0, aScore - 1);
-        if (tAway && tAway.tactics && tAway.tactics.style === 'otobus') hScore = Math.max(0, hScore - 1);
+        if (tHome?.tactics?.style === 'otobus') aScore = Math.max(0, aScore - 1);
+        if (tAway?.tactics?.style === 'otobus') hScore = Math.max(0, hScore - 1);
+        if (tHome?.tactics?.style === 'kgv') hScore += Math.floor(Math.random() * 2);
+        if (tAway?.tactics?.style === 'kgv') aScore += Math.floor(Math.random() * 2);
 
         m.homeGoals = hScore;
         m.awayGoals = aScore;
         m.played = true;
         m.goalDetails = [];
 
-        // Ev Sahibi Gol Dakikaları ve Oyuncuları
         for (let i = 0; i < hScore; i++) {
           let min = Math.floor(Math.random() * 88) + 1;
           let player = golcuSec(tHome);
           m.goalDetails.push({ team: 'home', text: `⚽ dk '${min} ${player}` });
         }
 
-        // Deplasman Gol Dakikaları ve Oyuncuları
         for (let i = 0; i < aScore; i++) {
           let min = Math.floor(Math.random() * 88) + 1;
           let player = golcuSec(tAway);
@@ -443,22 +456,4 @@
 
           container.innerHTML += `
             <div class="fixture-item">
-              <div><b>${hName}</b> ${score} <b>${aName}</b></div>
-              ${goalsHtml}
-            </div>`;
-        });
-      });
-    }
-
-    if (myTeamId) {
-      db.ref(`teams/${myTeamId}`).once('value', snapshot => {
-        if (snapshot.exists()) {
-          squad = snapshot.val().squad || [];
-          initGame(snapshot.val().name);
-          renderSquad();
-        }
-      });
-    }
-  </script>
-</body>
-</html>
+              <div><b>${hName}</b> ${score} <b>${aName}</b
