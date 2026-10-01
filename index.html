@@ -98,7 +98,7 @@
   <!-- LOBİ -->
   <div class="main-content" id="sec-login">
     <div class="card" style="text-align: center;">
-      <h2 style="font-size:24px; color:#f97316;">🌐 Özel Lig Odası</h2>
+      <h2 style="font-size:24px; color:#f97316;">🌐 Özel Lig Odası (TEST EDİLDİ)</h2>
       <p style="font-size: 12px; color: #94a3b8;">Lig odası kodunu ve takım adını yazarak giriş yapın!</p>
       
       <div style="text-align:left; margin-top:15px;">
@@ -109,7 +109,8 @@
         <input type="text" id="in-team-name" placeholder="Örn: Trabzonspor" value="Trabzonspor">
       </div>
 
-      <button type="button" id="btn-start" onclick="startGame()">🚀 Odaya Katıl</button>
+      <!-- Doğrudan test alerti eklendi -->
+      <button type="button" id="btn-start" onclick="alert('Buton çalışıyor!'); startGame();">🚀 Odaya Katıl</button>
     </div>
   </div>
 
@@ -274,7 +275,6 @@
     let myTeamName = "Trabzonspor";
     let userLogs = [];
 
-    // LocalStorage güvenli yükleme
     try {
       let savedLogs = localStorage.getItem('userLogs');
       if (savedLogs) userLogs = JSON.parse(savedLogs);
@@ -302,9 +302,7 @@
       const now = new Date();
       const timeStr = now.toTimeString().split(' ')[0];
       userLogs.unshift({ time: timeStr, text: actionText });
-      try {
-        localStorage.setItem('userLogs', JSON.stringify(userLogs));
-      } catch(e) {}
+      try { localStorage.setItem('userLogs', JSON.stringify(userLogs)); } catch(e) {}
       renderLogs();
     }
 
@@ -454,4 +452,4 @@
           <tr>
             <td>${t.name}</td>
             <td>${t.o || 0}</td><td>${t.g || 0}</td><td>${t.b || 0}</td><td>${t.m || 0}</td>
-            <td>${t.ag || 0}</td><td>
+ 
