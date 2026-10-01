@@ -209,28 +209,7 @@
     </div>
   </div>
 
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-
   <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyAQin6wcbsZ1leZCAFE6NfncSjEhg9ntIg",
-      authDomain: "bimsuperlig.firebaseapp.com",
-      databaseURL: "https://bimsuperlig-default-rtdb.firebaseio.com",
-      projectId: "bimsuperlig",
-      storageBucket: "bimsuperlig.firebasestorage.app",
-      messagingSenderId: "451832283043",
-      appId: "1:451832283043:web:914a7c63b6d77ddaa72416"
-    };
-
-    let db = null;
-    try {
-      if (typeof firebase !== 'undefined' && !firebase.apps.length) {
-        firebase.initializeApp(firebaseConfig);
-        db = firebase.database();
-      }
-    } catch(e) {}
-
     let myTeamId = localStorage.getItem('myTeamId') || ('team_' + Date.now() + '_' + Math.floor(Math.random()*1000));
     let squad = [
       { id: 1, name: "Burak Yılmaz", country: "🇹🇷", ovr: 82, pot: 85, banned: false, img: "https://cdn-icons-png.flaticon.com/512/847/847969.png" },
@@ -244,7 +223,9 @@
     let allTeams = {};
     let leagueFixtures = [];
     const defaultImg = "https://cdn-icons-png.flaticon.com/512/847/847969.png";
+    let db = null;
 
+    // AÇILIŞ - HİÇBİR ŞEYE TAKILMADAN ANINDA GİRİŞ
     function hizliGiris() {
       var nameInput = document.getElementById('in-team-name');
       var name = (nameInput && nameInput.value.trim()) ? nameInput.value.trim() : "Bursa Spor";
@@ -256,17 +237,8 @@
       document.getElementById('disp-team-name').innerText = name;
       renderSquad();
 
-      if (db) {
-        try {
-          db.ref('teams/' + myTeamId).set({
-            name: name,
-            pts: 0, o: 0, g: 0, b: 0, m: 0, ag: 0, yg: 0, av: 0,
-            tactics: { baski: 50, stil: 50, tempo: 50, style: 'pas' },
-            squad: squad
-          });
-          initGameListeners();
-        } catch(err) {}
-      }
+      // Arka planda Firebase kütüphanesini yükle
+      initFirebaseAsync(name);
     }
 
     function toggleMenu() {
@@ -352,14 +324,14 @@
     function renderSquad() {
       const container = document.getElementById('squad-container');
       const homeContainer = document.getElementById('home-squad-container');
-      document.getElementById('player-count').innerText = squad.length;
+      if (document.getElementById('player-count')) document.getElementById('player-count').innerText = squad.length;
       
-      container.innerHTML = '';
-      homeContainer.innerHTML = '';
+      if (container) container.innerHTML = '';
+      if (homeContainer) homeContainer.innerHTML = '';
 
       if (squad.length === 0) {
-        container.innerHTML = '<p style="font-size:12px; color:#aaa; text-align:center;">Kadronuz boş.</p>';
-        homeContainer.innerHTML = '<p style="font-size:12px; color:#aaa; text-align:center;">Kadronuz boş.</p>';
+        if (container) container.innerHTML = '<p style="font-size:12px; color:#aaa; text-align:center;">Kadronuz boş.</p>';
+        if (homeContainer) homeContainer.innerHTML = '<p style="font-size:12px; color:#aaa; text-align:center;">Kadronuz boş.</p>';
         return;
       }
 
@@ -375,17 +347,21 @@
           </div>
         `;
 
-        const el1 = document.createElement('div');
-        el1.className = cardClass;
-        el1.onclick = () => oyuncuSec(p);
-        el1.innerHTML = htmlContent + `<button type="button" class="danger" style="width:auto; padding:4px 8px; font-size:11px;" onclick="event.stopPropagation(); oyuncuSil(${p.id})">Sil</button>`;
-        container.appendChild(el1);
+        if (container) {
+          const el1 = document.createElement('div');
+          el1.className = cardClass;
+          el1.onclick = () => oyuncuSec(p);
+          el1.innerHTML = htmlContent + `<button type="button" class="danger" style="width:auto; padding:4px 8px; font-size:11px;" onclick="event.stopPropagation(); oyuncuSil(${p.id})">Sil</button>`;
+          container.appendChild(el1);
+        }
 
-        const el2 = document.createElement('div');
-        el2.className = cardClass;
-        el2.onclick = () => oyuncuSec(p);
-        el2.innerHTML = htmlContent;
-        homeContainer.appendChild(el2);
+        if (homeContainer) {
+          const el2 = document.createElement('div');
+          el2.className = cardClass;
+          el2.onclick = () => oyuncuSec(p);
+          el2.innerHTML = htmlContent;
+          homeContainer.appendChild(el2);
+        }
       });
     }
 
@@ -426,7 +402,7 @@
         if (!pitchSlots[pos]) {
           missingPositions.push(posNames[pos]);
         } else if (pitchSlots[pos].banned) {
-          return alert(`⚠️ Sahadaki ${posNames[pos]} (${pitchSlots[pos].name}) KIRMIZI KART CEZALISI! Maç simüle edilemez.`);
+          return alert(`⚠️️ Sahadaki ${posNames[pos]} (${pitchSlots[pos].name}) KIRMIZI KART CEZALISI! Maç simüle edilemez.`);
         }
       }
 
@@ -437,7 +413,7 @@
       if (!db) {
         let hScore = Math.floor(Math.random() * 3);
         let aScore = Math.floor(Math.random() * 3);
-        alert('Maç Sonucu: Bursa Spor ' + hScore + ' - ' + aScore + ' Rakip FC');
+        alert('Maç Sonucu: Takımınız ' + hScore + ' - ' + aScore + ' Rakip FC');
         currentWeek++;
         document.getElementById('current-week-disp').innerText = 'Hafta ' + currentWeek;
         return;
@@ -447,4 +423,23 @@
       if (currentWeek > 10) return alert('Lig tamamlandı!');
 
       let weekData = leagueFixtures[currentWeek - 1];
- 
+      if (!weekData || !weekData.matches) return;
+
+      weekData.matches.forEach(m => {
+        let tHome = allTeams[m.home];
+        let tAway = allTeams[m.away];
+
+        let homePower = hesaplaTakimGucu(tHome);
+        let awayPower = hesaplaTakimGucu(tAway);
+
+        let hScore = Math.max(0, Math.floor((homePower - awayPower) / 10) + Math.floor(Math.random() * 3));
+        let aScore = Math.max(0, Math.floor((awayPower - homePower) / 10) + Math.floor(Math.random() * 3));
+
+        m.homeGoals = hScore;
+        m.awayGoals = aScore;
+        m.played = true;
+        m.goalDetails = [];
+
+        let redCardEvent = Math.random() < 0.2;
+        if (redCardEvent && squad.length > 0) {
+          let randomPlayer = squad[Math.floor(Math.random() * squad
