@@ -85,7 +85,7 @@
       <h2>BimSüperlig - Lige Katıl</h2>
       <p style="font-size: 12px; color: #94a3b8;">Takım adınızı yazıp oyuna başlayın.</p>
       <input type="text" id="in-team-name" placeholder="Takım Adınızı Yazın..." value="Bursa Spor">
-      <button type="button" onclick="hizliGiris()">🚀 Lige Katıl ve Başla</button>
+      <button id="btn-submit" type="button">🚀 Lige Katıl ve Başla</button>
     </div>
   </div>
 
@@ -231,7 +231,7 @@
       }
     } catch(e) {}
 
-    let myTeamId = localStorage.getItem('myTeamId') || 'team_' + Date.now();
+    let myTeamId = localStorage.getItem('myTeamId') || ('team_' + Date.now() + '_' + Math.floor(Math.random()*1000));
     let squad = [
       { id: 1, name: "Burak Yılmaz", country: "🇹🇷", ovr: 82, pot: 85, banned: false, img: "https://cdn-icons-png.flaticon.com/512/847/847969.png" },
       { id: 2, name: "Mateta", country: "🇫🇷", ovr: 82, pot: 86, banned: false, img: "https://cdn-icons-png.flaticon.com/512/847/847969.png" },
@@ -244,6 +244,13 @@
     let allTeams = {};
     let leagueFixtures = [];
     const defaultImg = "https://cdn-icons-png.flaticon.com/512/847/847969.png";
+
+    document.addEventListener("DOMContentLoaded", function() {
+      const btn = document.getElementById('btn-submit');
+      if (btn) {
+        btn.onclick = hizliGiris;
+      }
+    });
 
     function hizliGiris() {
       const nameInput = document.getElementById('in-team-name');
@@ -401,21 +408,18 @@
       }
       let avgOvr = count > 0 ? (totalOvr / count) : 75;
       
-      // Taktik Etkisi
       let styleBonus = 0;
       if (team.tactics) {
         if (team.tactics.style === 'kgv') styleBonus += 3;
         if (team.tactics.style === 'kontra') styleBonus += 2;
       }
       
-      // Rastgele İstikrar/Form Faktörü (±5 güç değişimi)
       let formBonus = Math.floor(Math.random() * 11) - 5;
       
       return avgOvr + styleBonus + formBonus;
     }
 
     function haftayiOyna() {
-      // 1. KADRO EKSİK KONTROLÜ
       const missingPositions = [];
       const posNames = { SF: 'FORVET', OS: 'ORTA SAHA', DEF: 'DEFANS', KL: 'KALECİ' };
       
@@ -446,6 +450,4 @@
         let awayPower = hesaplaTakimGucu(tAway);
 
         let hScore = Math.max(0, Math.floor((homePower - awayPower) / 10) + Math.floor(Math.random() * 3));
-        let aScore = Math.max(0, Math.floor((awayPower - homePower) / 10) + Math.floor(Math.random() * 3));
-
-        m.home
+        let aSc
