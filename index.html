@@ -80,7 +80,7 @@
     <h2>BimSüperlig - Lige Katıl</h2>
     <p style="font-size: 12px; color: #94a3b8;">Maksimum 6 Takım katılabilir.</p>
     <input type="text" id="in-team-name" placeholder="Takım Adınızı Yazın...">
-    <button onclick="takimKaydet()">Lige Katıl</button>
+    <button id="btn-login" onclick="takimKaydet()">Lige Katıl</button>
   </div>
 
   <!-- ANA OYUN EKRANI -->
@@ -183,8 +183,14 @@
       messagingSenderId: "451832283043",
       appId: "1:451832283043:web:914a7c63b6d77ddaa72416"
     };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+
+    let db;
+    try {
+      firebase.initializeApp(firebaseConfig);
+      db = firebase.database();
+    } catch(e) {
+      console.log("Firebase baglanti hatasi:", e);
+    }
 
     let myTeamId = localStorage.getItem('myTeamId') || null;
     let squad = [];
@@ -203,10 +209,27 @@
       const name = document.getElementById('in-team-name').value.trim();
       if (!name) return alert('Lütfen bir takım adı girin!');
 
-      db.ref('teams').once('value', snapshot => {
+      const btn = document.getElementById('btn-login');
+      btn.innerText = "Katılınıyor...";
+      btn.disabled = true;
+
+      if (!db) {
+        // Firebase baglanamazsa yerel modda devam et
+        myTeamId = 'team_' + Date.now();
+        localStorage.setItem('myTeamId', myTeamId);
+        initGame(name);
+        return;
+      }
+
+      db.ref('teams').once('value').then(snapshot => {
         const teams = snapshot.val() || {};
         const teamKeys = Object.keys(teams);
-        if (teamKeys.length >= 6) return alert('Lig dolu! Maksimum 6 takım katılabilir.');
+        if (teamKeys.length >= 6) {
+          alert('Lig dolu! Maksimum 6 takım katılabilir.');
+          btn.innerText = "Lige Katıl";
+          btn.disabled = false;
+          return;
+        }
 
         const newRef = db.ref('teams').push();
         myTeamId = newRef.key;
@@ -223,10 +246,17 @@
           }
           initGame(name);
         });
+      }).catch(err => {
+        console.error(err);
+        // Hata durumunda yerel modda baslat
+        myTeamId = 'team_' + Date.now();
+        localStorage.setItem('myTeamId', myTeamId);
+        initGame(name);
       });
     }
 
     function fiksturOlustur(teamIds) {
+      if (!db) return;
       let schedule = [];
       for (let week = 1; week <= 10; week++) {
         let matches = [];
@@ -253,12 +283,12 @@
       const pot = parseInt(document.getElementById('p-pot').value);
       const img = document.getElementById('p-img').value.trim() || defaultImg;
 
-      if (!name || !ovr || !pot) return alert('Lütfen isim, overall ve potansiyel bilgilerini girin!');
+      if (!name || isNaN(ovr) || isNaN(pot)) return alert('Lütfen isim, overall ve potansiyel bilgilerini eksiksiz girin!');
       if (ovr > pot) return alert('Mevcut overall potansiyelden büyük olamaz!');
 
       const newPlayer = { id: Date.now(), name, ovr, pot, img };
       squad.push(newPlayer);
-      db.ref(`teams/${myTeamId}/squad`).set(squad);
+      if (db && myTeamId) db.ref(`teams/${myTeamId}/squad`).set(squad);
 
       document.getElementById('p-name').value = '';
       document.getElementById('p-ovr').value = '';
@@ -269,7 +299,7 @@
 
     function oyuncuSil(id) {
       squad = squad.filter(p => p.id !== id);
-      db.ref(`teams/${myTeamId}/squad`).set(squad);
+      if (db && myTeamId) db.ref(`teams/${myTeamId}/squad`).set(squad);
       renderSquad();
     }
 
@@ -319,7 +349,7 @@
     }
 
     function taktikKaydet() {
-      if (!myTeamId) return;
+      if (!myTeamId || !db) return;
       const baski = document.getElementById('r-baski').value;
       const stil = document.getElementById('r-stil').value;
       const tempo = document.getElementById('r-tempo').value;
@@ -342,6 +372,7 @@
     }
 
     function haftayiOyna() {
+      if (!db) return alert('Veritabanı bağlantısı yok!');
       if (!leagueFixtures || leagueFixtures.length === 0) return alert('Lig henüz 6 takıma ulaşmadı, fikstür bekleniyor!');
       if (currentWeek > 10) return alert('Lig tamamlandı!');
 
@@ -400,6 +431,8 @@
       document.getElementById('sec-game').style.display = 'block';
       document.getElementById('disp-team-name').innerText = teamName;
       
+      if (!db) return;
+
       db.ref('teams').on('value', snapshot => {
         allTeams = snapshot.val() || {};
         const table = document.getElementById('league-table');
@@ -434,26 +467,4 @@
         container.innerHTML = '';
 
         if (leagueFixtures.length === 0) {
-          container.innerHTML = '<p style="font-size:12px; color:#aaa;">6 takım katıldığında fikstür otomatik oluşturulacak.</p>';
-          return;
-        }
-
-        let weekMatches = leagueFixtures[Math.min(currentWeek - 1, 9)]?.matches || [];
-        weekMatches.forEach(m => {
-          let hName = allTeams[m.home]?.name || 'Takım';
-          let aName = allTeams[m.away]?.name || 'Takım';
-          let score = m.played ? `<b>${m.homeGoals} - ${m.awayGoals}</b>` : 'vs';
-
-          let goalsHtml = '';
-          if (m.played && m.goalDetails && m.goalDetails.length > 0) {
-            goalsHtml = '<div class="goal-list">';
-            m.goalDetails.forEach(g => {
-              let tName = g.team === 'home' ? hName : aName;
-              goalsHtml += `<div class="goal-item">${g.text} (${tName})</div>`;
-            });
-            goalsHtml += '</div>';
-          }
-
-          container.innerHTML += `
-            <div class="fixture-item">
-              <div><b>${hName}</b> ${score} <b>${aName}</b
+          container.innerHTML = '<p style="font-size:12px; color
