@@ -264,7 +264,6 @@
       let leagueCode = "ozeloda1";
       let myTeamId = localStorage.getItem('myTeamId') || 'team_' + Math.floor(Math.random() * 100000);
       let myTeamName = "Bursa Spor";
-      const defaultImg = "https://cdn-icons-png.flaticon.com/512/847/847969.png";
 
       let squad = [
         { id: 1, name: "Burak Yılmaz", country: "🇹🇷", ovr: 82, pot: 85 },
@@ -302,7 +301,6 @@
         } catch(e) { console.log("Firebase baglanti uyarisi:", e); }
       }
 
-      // EVENT LISTENERS (TIKLAMA OLAYLARI)
       document.getElementById('btn-start').onclick = startGame;
       document.getElementById('btn-open-menu').onclick = toggleMenu;
       document.getElementById('btn-close-menu').onclick = toggleMenu;
@@ -450,4 +448,7 @@
 
         simInterval = setInterval(() => {
           currentMinute += 3;
-          document.getElementById('m-c
+          document.getElementById('m-clock').innerText = currentMinute + "'";
+
+          let rand = Math.random();
+          let commentary = document.getElementByI
