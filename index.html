@@ -82,13 +82,13 @@
       
       <div style="text-align:left; margin-top:15px;">
         <label style="font-size:12px; color:#22c55e;"><b>Özel Lig / Oda Adı:</b></label>
-        <input type="text" id="in-league-code" placeholder="Örn: gizlioda123">
+        <input type="text" id="in-league-code" placeholder="Örn: gizlioda123" value="ozeloda1">
         
         <label style="font-size:12px; color:#22c55e; margin-top:10px; display:block;"><b>Takım Adınız:</b></label>
-        <input type="text" id="in-team-name" placeholder="Örn: Bursa Spor">
+        <input type="text" id="in-team-name" placeholder="Örn: Bursa Spor" value="Bursa Spor">
       </div>
 
-      <button type="button" id="btn-start">🚀 Odaya Katıl</button>
+      <button type="button" id="btn-start" onclick="startGame()">🚀 Odaya Katıl</button>
     </div>
   </div>
 
@@ -100,19 +100,19 @@
         <h2 id="disp-team-name">Takımım</h2>
         <span class="league-badge" id="disp-league-code">Oda: -</span>
       </div>
-      <button class="menu-btn" id="btn-toggle-menu">☰</button>
+      <button class="menu-btn" onclick="toggleMenu()">☰</button>
     </div>
 
     <div class="sidebar" id="sidebar">
       <div class="sidebar-header">
         <h3>Menü</h3>
-        <button class="close-btn" id="btn-close-menu">✕</button>
+        <button class="close-btn" onclick="toggleMenu()">✕</button>
       </div>
       <ul class="menu-list">
-        <li data-target="home">🏠 Saha & Kadro</li>
-        <li data-target="squad">📋 Kadro & Oyuncu Ekle</li>
-        <li data-target="tactics">🎯 Taktikler</li>
-        <li data-target="table">📊 Canlı Puan Durumu</li>
+        <li onclick="showPage('home')">🏠 Saha & Kadro</li>
+        <li onclick="showPage('squad')">📋 Kadro & Oyuncu Ekle</li>
+        <li onclick="showPage('tactics')">🎯 Taktikler</li>
+        <li onclick="showPage('table')">📊 Canlı Puan Durumu</li>
       </ul>
     </div>
 
@@ -121,17 +121,17 @@
       <!-- PAGE 1: SAHA -->
       <div id="page-home">
         <div class="card">
-          <button class="sim-btn" type="button" id="btn-play-match">⚡ Arkadaşınla Maç Yap</button>
+          <button class="sim-btn" type="button" onclick="ligMaciOyna()">⚡ Arkadaşınla Maç Yap</button>
         </div>
 
         <div class="card">
           <h3>4'lü Saha Dizilimi</h3>
           <p style="font-size:11px; color:#22c55e;">💡 Oyuncuya dokunun, ardından sahadaki pozisyona yerleştirin.</p>
           <div class="pitch">
-            <div class="slot pos-SF" id="slot-SF">FORVET</div>
-            <div class="slot pos-OS" id="slot-OS">ORTA SAHA</div>
-            <div class="slot pos-DEF" id="slot-DEF">DEFANS</div>
-            <div class="slot pos-KL" id="slot-KL">KALECİ</div>
+            <div class="slot pos-SF" id="slot-SF" onclick="slotSec('SF')">FORVET</div>
+            <div class="slot pos-OS" id="slot-OS" onclick="slotSec('OS')">ORTA SAHA</div>
+            <div class="slot pos-DEF" id="slot-DEF" onclick="slotSec('DEF')">DEFANS</div>
+            <div class="slot pos-KL" id="slot-KL" onclick="slotSec('KL')">KALECİ</div>
           </div>
         </div>
 
@@ -154,7 +154,7 @@
           <input type="text" id="p-country" placeholder="Ülke Bayrağı (Örn: 🇫🇷)">
           <input type="number" id="p-ovr" placeholder="Overall (Örn: 82)">
           <input type="number" id="p-pot" placeholder="Potansiyel (Örn: 86)">
-          <button type="button" id="btn-add-player">Kadroya Oyuncu Ekle</button>
+          <button type="button" onclick="oyuncuEkle()">Kadroya Oyuncu Ekle</button>
         </div>
       </div>
 
@@ -172,11 +172,11 @@
 
           <div style="margin-top:12px;">
             <label>Baskı: <span id="v-baski" style="color:#22c55e;">50%</span></label>
-            <input type="range" id="r-baski" min="0" max="100" value="50">
+            <input type="range" id="r-baski" min="0" max="100" value="50" oninput="document.getElementById('v-baski').innerText=this.value+'%'">
           </div>
           <div>
             <label>Tempo: <span id="v-tempo" style="color:#22c55e;">50%</span></label>
-            <input type="range" id="r-tempo" min="0" max="100" value="50">
+            <input type="range" id="r-tempo" min="0" max="100" value="50" oninput="document.getElementById('v-tempo').innerText=this.value+'%'">
           </div>
         </div>
       </div>
@@ -201,9 +201,24 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
   <script>
-    document.addEventListener("DOMContentLoaded", function() {
-      
-      let db = null;
+    let db = null;
+    let leagueCode = "ozeloda1";
+    let myTeamId = localStorage.getItem('myTeamId') || 'team_' + Math.floor(Math.random() * 100000);
+    let myTeamName = "Bursa Spor";
+    const defaultImg = "https://cdn-icons-png.flaticon.com/512/847/847969.png";
+
+    let squad = [
+      { id: 1, name: "Burak Yılmaz", country: "🇹🇷", ovr: 82, pot: 85, img: defaultImg },
+      { id: 2, name: "Mateta", country: "🇫🇷", ovr: 82, pot: 86, img: defaultImg },
+      { id: 3, name: "Muslera", country: "🇺🇾", ovr: 80, pot: 82, img: defaultImg },
+      { id: 4, name: "Sarr", country: "🇸🇳", ovr: 81, pot: 84, img: defaultImg }
+    ];
+
+    let pitchSlots = { SF: null, OS: null, DEF: null, KL: null };
+    let selectedPlayer = null;
+    let allLeagueTeams = {};
+
+    function initFirebase() {
       try {
         if (typeof firebase !== 'undefined' && !firebase.apps.length) {
           firebase.initializeApp({
@@ -217,251 +232,214 @@
           });
           db = firebase.database();
         }
-      } catch(e) { console.log("Firebase baglanti hatasi"); }
+      } catch(e) { 
+        console.log("Firebase başlatılamadı:", e); 
+      }
+    }
 
-      let leagueCode = "ozeloda1";
-      let myTeamId = localStorage.getItem('myTeamId') || 'team_' + Math.floor(Math.random() * 100000);
-      let myTeamName = "Bursa Spor";
-      const defaultImg = "https://cdn-icons-png.flaticon.com/512/847/847969.png";
+    function startGame() {
+      const lInput = document.getElementById('in-league-code').value.trim();
+      const tInput = document.getElementById('in-team-name').value.trim();
 
-      let squad = [
-        { id: 1, name: "Burak Yılmaz", country: "🇹🇷", ovr: 82, pot: 85, img: defaultImg },
-        { id: 2, name: "Mateta", country: "🇫🇷", ovr: 82, pot: 86, img: defaultImg },
-        { id: 3, name: "Muslera", country: "🇺🇾", ovr: 80, pot: 82, img: defaultImg },
-        { id: 4, name: "Sarr", country: "🇸🇳", ovr: 81, pot: 84, img: defaultImg }
-      ];
-
-      let pitchSlots = { SF: null, OS: null, DEF: null, KL: null };
-      let selectedPlayer = null;
-      let allLeagueTeams = {};
-
-      const btnStart = document.getElementById('btn-start');
-      const btnToggleMenu = document.getElementById('btn-toggle-menu');
-      const btnCloseMenu = document.getElementById('btn-close-menu');
-      const btnAddPlayer = document.getElementById('btn-add-player');
-      const btnPlayMatch = document.getElementById('btn-play-match');
-
-      if (btnStart) btnStart.addEventListener('click', startGame);
-      if (btnToggleMenu) btnToggleMenu.addEventListener('click', toggleMenu);
-      if (btnCloseMenu) btnCloseMenu.addEventListener('click', toggleMenu);
-      if (btnAddPlayer) btnAddPlayer.addEventListener('click', oyuncuEkle);
-      if (btnPlayMatch) btnPlayMatch.addEventListener('click', ligMaciOyna);
-
-      document.querySelectorAll('.menu-list li').forEach(item => {
-        item.addEventListener('click', function() {
-          showPage(this.getAttribute('data-target'));
-        });
-      });
-
-      ['SF', 'OS', 'DEF', 'KL'].forEach(pos => {
-        const slotEl = document.getElementById(`slot-${pos}`);
-        if (slotEl) {
-          slotEl.addEventListener('click', () => slotSec(pos));
-        }
-      });
-
-      document.getElementById('r-baski').addEventListener('input', (e) => {
-        document.getElementById('v-baski').innerText = e.target.value + '%';
-      });
-
-      document.getElementById('r-tempo').addEventListener('input', (e) => {
-        document.getElementById('v-tempo').innerText = e.target.value + '%';
-      });
-
-      function startGame() {
-        const lInput = document.getElementById('in-league-code').value.trim();
-        const tInput = document.getElementById('in-team-name').value.trim();
-
-        if (!lInput || !tInput) return alert('Lütfen Oda Adını ve Takım Adınızı yazın!');
-
-        leagueCode = lInput.toLowerCase();
-        myTeamName = tInput;
-
-        localStorage.setItem('myTeamId', myTeamId);
-
-        document.getElementById('disp-team-name').innerText = myTeamName;
-        document.getElementById('disp-league-code').innerText = "Oda: " + leagueCode;
-
-        document.getElementById('sec-login').style.display = 'none';
-        document.getElementById('sec-game').style.display = 'block';
-
-        const myData = {
-          id: myTeamId, name: myTeamName,
-          pts: 0, o: 0, g: 0, b: 0, m: 0, ag: 0, yg: 0,
-          squad: squad
-        };
-
-        allLeagueTeams[myTeamId] = myData;
-
-        if (db) {
-          db.ref(`leagues/${leagueCode}/teams/${myTeamId}`).set(myData);
-          
-          db.ref(`leagues/${leagueCode}/teams`).on('value', snapshot => {
-            const data = snapshot.val();
-            if (data) {
-              allLeagueTeams = data;
-              renderTable();
-            }
-          });
-        }
-
-        renderSquad();
-        renderTable();
+      if (!lInput || !tInput) {
+        alert('Lütfen Oda Adını ve Takım Adınızı yazın!');
+        return;
       }
 
-      function toggleMenu() {
-        document.getElementById('sidebar').classList.toggle('open');
-      }
+      leagueCode = lInput.toLowerCase();
+      myTeamName = tInput;
 
-      function showPage(pageId) {
-        ['home', 'squad', 'tactics', 'table'].forEach(p => {
-          const el = document.getElementById('page-' + p);
-          if (el) el.style.display = (p === pageId) ? 'block' : 'none';
-        });
-        document.getElementById('sidebar').classList.remove('open');
-      }
+      localStorage.setItem('myTeamId', myTeamId);
 
-      function renderSquad() {
-        const container = document.getElementById('squad-container');
-        const homeContainer = document.getElementById('home-squad-container');
-        document.getElementById('player-count').innerText = squad.length;
+      document.getElementById('disp-team-name').innerText = myTeamName;
+      document.getElementById('disp-league-code').innerText = "Oda: " + leagueCode;
 
-        if (container) container.innerHTML = '';
-        if (homeContainer) homeContainer.innerHTML = '';
+      document.getElementById('sec-login').style.display = 'none';
+      document.getElementById('sec-game').style.display = 'block';
 
-        squad.forEach(p => {
-          const isSel = selectedPlayer && selectedPlayer.id === p.id;
-          const cardClass = `player-card ${isSel ? 'selected' : ''}`;
+      initFirebase();
 
-          const content = `
-            <div style="display:flex; align-items:center;">
-              <span style="font-size:16px; margin-right:6px;">${p.country || '🏳️'}</span>
-              <span><b>${p.name}</b> (OVR: ${p.ovr})</span>
-            </div>
-          `;
+      const myData = {
+        id: myTeamId, 
+        name: myTeamName,
+        pts: 0, o: 0, g: 0, b: 0, m: 0, ag: 0, yg: 0,
+        squad: squad
+      };
 
-          if (container) {
-            const div1 = document.createElement('div');
-            div1.className = cardClass;
-            div1.innerHTML = content + `<button type="button" class="danger" style="width:auto; padding:4px 8px; font-size:11px;">Sil</button>`;
-            div1.querySelector('button').addEventListener('click', (e) => {
-              e.stopPropagation();
-              oyuncuSil(p.id);
-            });
-            div1.addEventListener('click', () => { selectedPlayer = p; renderSquad(); });
-            container.appendChild(div1);
-          }
+      allLeagueTeams[myTeamId] = myData;
 
-          if (homeContainer) {
-            const div2 = document.createElement('div');
-            div2.className = cardClass;
-            div2.innerHTML = content;
-            div2.addEventListener('click', () => { selectedPlayer = p; renderSquad(); });
-            homeContainer.appendChild(div2);
-          }
-        });
-      }
-
-      function oyuncuEkle() {
-        if (squad.length >= 16) return alert('Kadro limiti dolu!');
-        const name = document.getElementById('p-name').value.trim();
-        const country = document.getElementById('p-country').value.trim() || '🏳️';
-        const ovr = parseInt(document.getElementById('p-ovr').value);
-        const pot = parseInt(document.getElementById('p-pot').value) || ovr;
-
-        if (!name || isNaN(ovr)) return alert('Lütfen isim ve OVR alanlarını doldurun!');
-
-        squad.push({ id: Date.now(), name, country, ovr, pot, img: defaultImg });
-
-        if (db) db.ref(`leagues/${leagueCode}/teams/${myTeamId}/squad`).set(squad);
-
-        document.getElementById('p-name').value = '';
-        document.getElementById('p-country').value = '';
-        document.getElementById('p-ovr').value = '';
-        document.getElementById('p-pot').value = '';
-
-        renderSquad();
-        alert('Oyuncu eklendi!');
-      }
-
-      function oyuncuSil(id) {
-        squad = squad.filter(p => p.id !== id);
-        if (db) db.ref(`leagues/${leagueCode}/teams/${myTeamId}/squad`).set(squad);
-        renderSquad();
-      }
-
-      function slotSec(pos) {
-        if (!selectedPlayer) return alert('Önce listeden bir oyuncuya tıklayın!');
-
-        pitchSlots[pos] = selectedPlayer;
-        const slotEl = document.getElementById(`slot-${pos}`);
-        slotEl.classList.add('filled');
-        slotEl.innerHTML = `
-          <div style="font-size:10px; font-weight:bold;">${selectedPlayer.country} ${selectedPlayer.name}</div>
-          <div style="background:#22c55e; color:#000; padding:1px 4px; border-radius:3px; font-size:9px;">OVR: ${selectedPlayer.ovr}</div>
-        `;
-        selectedPlayer = null;
-        renderSquad();
-      }
-
-      function ligMaciOyna() {
-        for (let pos in pitchSlots) {
-          if (!pitchSlots[pos]) return alert(`⚠️ Lütfen sahadaki ${pos} pozisyonuna oyuncu yerleştirin!`);
-        }
-
-        let opponents = Object.values(allLeagueTeams).filter(t => t.id !== myTeamId);
+      if (db) {
+        db.ref(`leagues/${leagueCode}/teams/${myTeamId}`).set(myData);
         
-        if (opponents.length === 0) {
-          return alert("⚠️ Odaya henüz arkadaşın katılmadı! Arkadaşına aynı 'Oda Adı' ile giriş yapmasını söyle.");
-        }
-
-        let opponent = opponents[0];
-
-        let myPower = 0;
-        Object.values(pitchSlots).forEach(p => myPower += p.ovr);
-        myPower = Math.round(myPower / 4);
-
-        let oppPower = 80;
-        if (opponent.squad && opponent.squad.length > 0) {
-          let sum = 0;
-          opponent.squad.forEach(p => sum += (p.ovr || 75));
-          oppPower = Math.round(sum / opponent.squad.length);
-        }
-
-        let myGoals = Math.max(0, Math.floor((myPower - oppPower) / 5) + Math.floor(Math.random() * 3));
-        let oppGoals = Math.max(0, Math.floor((oppPower - myPower) / 5) + Math.floor(Math.random() * 3));
-
-        let me = allLeagueTeams[myTeamId];
-        me.o += 1; me.ag += myGoals; me.yg += oppGoals;
-        if (myGoals > oppGoals) { me.g += 1; me.pts += 3; }
-        else if (myGoals === oppGoals) { me.b += 1; me.pts += 1; }
-        else { me.m += 1; }
-
-        opponent.o += 1; opponent.ag += oppGoals; opponent.yg += myGoals;
-        if (oppGoals > myGoals) { opponent.g += 1; opponent.pts += 3; }
-        else if (oppGoals === myGoals) { opponent.b += 1; opponent.pts += 1; }
-        else { opponent.m += 1; }
-
-        if (db) {
-          db.ref(`leagues/${leagueCode}/teams/${myTeamId}`).update(me);
-          db.ref(`leagues/${leagueCode}/teams/${opponent.id}`).update(opponent);
-        }
-
-        renderTable();
-        alert(`⚽ MAÇ SONUCU:\n\n${me.name}: ${myGoals}\n${opponent.name}: ${oppGoals}`);
+        db.ref(`leagues/${leagueCode}/teams`).on('value', snapshot => {
+          const data = snapshot.val();
+          if (data) {
+            allLeagueTeams = data;
+            renderTable();
+          }
+        });
       }
 
-      function renderTable() {
-        const tbody = document.getElementById('league-table');
-        if (!tbody) return;
-        tbody.innerHTML = '';
+      renderSquad();
+      renderTable();
+    }
 
-        let list = Object.values(allLeagueTeams).sort((a,b) => (b.pts||0) - (a.pts||0) || ((b.ag||0) - (b.yg||0)) - ((a.ag||0) - (a.yg||0)));
+    function toggleMenu() {
+      document.getElementById('sidebar').classList.toggle('open');
+    }
 
-        list.forEach(t => {
-          const tr = document.createElement('tr');
-          if (t.id === myTeamId) tr.className = 'my-row';
-          tr.innerHTML = `
-            <td><b>${t.name}</b></td>
-            <td>${t.o || 0}</td><td>${t.g || 0}</td><td>${t.b || 0}</td><td>${t.m || 0}</td>
-            <td>${t.ag || 0}</td><td>${t.yg
+    function showPage(pageId) {
+      ['home', 'squad', 'tactics', 'table'].forEach(p => {
+        const el = document.getElementById('page-' + p);
+        if (el) el.style.display = (p === pageId) ? 'block' : 'none';
+      });
+      document.getElementById('sidebar').classList.remove('open');
+    }
+
+    function renderSquad() {
+      const container = document.getElementById('squad-container');
+      const homeContainer = document.getElementById('home-squad-container');
+      document.getElementById('player-count').innerText = squad.length;
+
+      if (container) container.innerHTML = '';
+      if (homeContainer) homeContainer.innerHTML = '';
+
+      squad.forEach(p => {
+        const isSel = selectedPlayer && selectedPlayer.id === p.id;
+        const cardClass = `player-card ${isSel ? 'selected' : ''}`;
+
+        const content = `
+          <div style="display:flex; align-items:center;">
+            <span style="font-size:16px; margin-right:6px;">${p.country || '🏳️'}</span>
+            <span><b>${p.name}</b> (OVR: ${p.ovr})</span>
+          </div>
+        `;
+
+        if (container) {
+          const div1 = document.createElement('div');
+          div1.className = cardClass;
+          div1.innerHTML = content + `<button type="button" class="danger" style="width:auto; padding:4px 8px; font-size:11px;" onclick="event.stopPropagation(); oyuncuSil(${p.id})">Sil</button>`;
+          div1.onclick = () => { selectedPlayer = p; renderSquad(); };
+          container.appendChild(div1);
+        }
+
+        if (homeContainer) {
+          const div2 = document.createElement('div');
+          div2.className = cardClass;
+          div2.onclick = () => { selectedPlayer = p; renderSquad(); };
+          div2.innerHTML = content;
+          homeContainer.appendChild(div2);
+        }
+      });
+    }
+
+    function oyuncuEkle() {
+      if (squad.length >= 16) return alert('Kadro limiti dolu!');
+      const name = document.getElementById('p-name').value.trim();
+      const country = document.getElementById('p-country').value.trim() || '🏳️';
+      const ovr = parseInt(document.getElementById('p-ovr').value);
+      const pot = parseInt(document.getElementById('p-pot').value) || ovr;
+
+      if (!name || isNaN(ovr)) return alert('Lütfen isim ve OVR alanlarını doldurun!');
+
+      squad.push({ id: Date.now(), name, country, ovr, pot, img: defaultImg });
+
+      if (db) db.ref(`leagues/${leagueCode}/teams/${myTeamId}/squad`).set(squad);
+
+      document.getElementById('p-name').value = '';
+      document.getElementById('p-country').value = '';
+      document.getElementById('p-ovr').value = '';
+      document.getElementById('p-pot').value = '';
+
+      renderSquad();
+      alert('Oyuncu eklendi!');
+    }
+
+    function oyuncuSil(id) {
+      squad = squad.filter(p => p.id !== id);
+      if (db) db.ref(`leagues/${leagueCode}/teams/${myTeamId}/squad`).set(squad);
+      renderSquad();
+    }
+
+    function slotSec(pos) {
+      if (!selectedPlayer) return alert('Önce listeden bir oyuncuya tıklayın!');
+
+      pitchSlots[pos] = selectedPlayer;
+      const slotEl = document.getElementById(`slot-${pos}`);
+      slotEl.classList.add('filled');
+      slotEl.innerHTML = `
+        <div style="font-size:10px; font-weight:bold;">${selectedPlayer.country} ${selectedPlayer.name}</div>
+        <div style="background:#22c55e; color:#000; padding:1px 4px; border-radius:3px; font-size:9px;">OVR: ${selectedPlayer.ovr}</div>
+      `;
+      selectedPlayer = null;
+      renderSquad();
+    }
+
+    function ligMaciOyna() {
+      for (let pos in pitchSlots) {
+        if (!pitchSlots[pos]) return alert(`⚠️ Lütfen sahadaki ${pos} pozisyonuna oyuncu yerleştirin!`);
+      }
+
+      let opponents = Object.values(allLeagueTeams).filter(t => t.id !== myTeamId);
+      
+      if (opponents.length === 0) {
+        return alert("⚠️ Odaya henüz arkadaşın katılmadı! Arkadaşına aynı 'Oda Adı' ile giriş yapmasını söyle.");
+      }
+
+      let opponent = opponents[0];
+
+      let myPower = 0;
+      Object.values(pitchSlots).forEach(p => myPower += p.ovr);
+      myPower = Math.round(myPower / 4);
+
+      let oppPower = 80;
+      if (opponent.squad && opponent.squad.length > 0) {
+        let sum = 0;
+        opponent.squad.forEach(p => sum += (p.ovr || 75));
+        oppPower = Math.round(sum / opponent.squad.length);
+      }
+
+      let myGoals = Math.max(0, Math.floor((myPower - oppPower) / 5) + Math.floor(Math.random() * 3));
+      let oppGoals = Math.max(0, Math.floor((oppPower - myPower) / 5) + Math.floor(Math.random() * 3));
+
+      let me = allLeagueTeams[myTeamId];
+      me.o += 1; me.ag += myGoals; me.yg += oppGoals;
+      if (myGoals > oppGoals) { me.g += 1; me.pts += 3; }
+      else if (myGoals === oppGoals) { me.b += 1; me.pts += 1; }
+      else { me.m += 1; }
+
+      opponent.o += 1; opponent.ag += oppGoals; opponent.yg += myGoals;
+      if (oppGoals > myGoals) { opponent.g += 1; opponent.pts += 3; }
+      else if (oppGoals === myGoals) { opponent.b += 1; opponent.pts += 1; }
+      else { opponent.m += 1; }
+
+      if (db) {
+        db.ref(`leagues/${leagueCode}/teams/${myTeamId}`).update(me);
+        db.ref(`leagues/${leagueCode}/teams/${opponent.id}`).update(opponent);
+      }
+
+      renderTable();
+      alert(`⚽ MAÇ SONUCU:\n\n${me.name}: ${myGoals}\n${opponent.name}: ${oppGoals}`);
+    }
+
+    function renderTable() {
+      const tbody = document.getElementById('league-table');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+
+      let list = Object.values(allLeagueTeams).sort((a,b) => (b.pts||0) - (a.pts||0) || ((b.ag||0) - (b.yg||0)) - ((a.ag||0) - (a.yg||0)));
+
+      list.forEach(t => {
+        const tr = document.createElement('tr');
+        if (t.id === myTeamId) tr.className = 'my-row';
+        tr.innerHTML = `
+          <td><b>${t.name}</b></td>
+          <td>${t.o || 0}</td><td>${t.g || 0}</td><td>${t.b || 0}</td><td>${t.m || 0}</td>
+          <td>${t.ag || 0}</td><td>${t.yg || 0}</td><td><b>${t.pts || 0}</b></td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+  </script>
+</body>
+</html>
