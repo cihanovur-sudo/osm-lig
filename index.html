@@ -123,6 +123,7 @@
             padding: 10px 15px;
             border-radius: 8px;
             transition: 0.2s;
+            cursor: pointer;
         }
 
         .sidebar-menu li a:hover, .sidebar-menu li a.active {
@@ -325,11 +326,11 @@
             <button class="close-sidebar" onclick="toggleMenu()">✕</button>
         </div>
         <ul class="sidebar-menu">
-            <li><a href="#" onclick="switchView('lobby-view')">🏠 Lobi & Giriş</a></li>
-            <li><a href="#" onclick="switchView('squad-view')">👕 Saha & Kadro (4 Oyuncu)</a></li>
-            <li><a href="#" onclick="switchView('tactics-view')">🎯 Taktikler</a></li>
-            <li><a href="#" onclick="switchView('match-view')">🏟️ Maç Simülasyonu</a></li>
-            <li><a href="#" onclick="switchView('table-view')">📊 Puan Durumu & Fikstür</a></li>
+            <li><a onclick="switchView('lobby-view')">🏠 Lobi & Giriş</a></li>
+            <li><a onclick="switchView('squad-view')">👕 Saha & Kadro (4 Oyuncu)</a></li>
+            <li><a onclick="switchView('tactics-view')">🎯 Taktikler</a></li>
+            <li><a onclick="switchView('match-view')">🏟️ Maç Simülasyonu</a></li>
+            <li><a onclick="switchView('table-view')">📊 Puan Durumu & Fikstür</a></li>
         </ul>
     </div>
 
@@ -440,14 +441,14 @@
             roomCode: "",
             teamName: "",
             tactic: "passing",
-            players: [], // Maksimum 16 oyuncu
-            lineup: [null, null, null, null], // 4 ilk 11 slotu
+            players: [], 
+            lineup: [null, null, null, null], 
             table: {},
             fixtures: []
         };
 
         window.onload = function() {
-            const savedData = localStorage.getItem('bimSuperLigSave_v2');
+            const savedData = localStorage.getItem('bimSuperLigSave_v3');
             if (savedData) {
                 try {
                     gameState = JSON.parse(savedData);
@@ -460,7 +461,7 @@
         };
 
         function saveGame() {
-            localStorage.setItem('bimSuperLigSave_v2', JSON.stringify(gameState));
+            localStorage.setItem('bimSuperLigSave_v3', JSON.stringify(gameState));
         }
 
         function toggleMenu() {
@@ -491,7 +492,6 @@
                 gameState.table[team] = { p: 0, o: 0, g: 0, b: 0, m: 0 };
             }
 
-            // Örnek otomatik fikstür oluşturucu (Oda kurulunca)
             if(gameState.fixtures.length === 0) {
                 gameState.fixtures = [
                     `${team} vs Rakip Takım 1`,
@@ -506,7 +506,6 @@
             switchView('squad-view');
         }
 
-        // Oyuncu Ekleme (Max 16)
         function addPlayer() {
             const input = document.getElementById('newPlayerName');
             const name = input.value.trim();
@@ -519,7 +518,6 @@
             updateUI();
         }
 
-        // Oyuncuyu İlk 11 Slotuna Koyma
         function assignPlayerToSlot(slotIndex) {
             if(gameState.players.length === 0) return alert("Önce oyuncu havuzuna oyuncu ekleyin!");
             let playerListStr = gameState.players.join("\n");
@@ -583,18 +581,24 @@
         }
 
         function updateUI() {
-            // Oyuncu Listesi Güncelle
             const listContainer = document.getElementById('squadListContainer');
             listContainer.innerHTML = "";
             gameState.players.forEach((p, idx) => {
                 listContainer.innerHTML += `<div class="squad-item"><span>${idx+1}. ${p}</span></div>`;
             });
 
-            // İlk 11 Slotlarını Güncelle
             for(let i=0; i<4; i++) {
                 let slotElem = document.getElementById(`slot-${i}`);
                 if(gameState.lineup[i]) {
                     slotElem.innerText = gameState.lineup[i];
                     slotElem.style.border = "1px solid var(--primary)";
                 } else {
-                    slotElem.
+                    slotElem.innerText = `Slot ${i+1} (Boş)`;
+                }
+            }
+
+            const tbody = document.getElementById('leagueTableBody');
+            tbody.innerHTML = "";
+            const teams = Object.keys(gameState.table);
+            if(teams.length === 0) {
+            
