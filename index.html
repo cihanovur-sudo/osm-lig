@@ -53,9 +53,10 @@
 
     .player-card { background: #334155; padding: 10px; border-radius: 6px; margin: 6px 0; font-size: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #475569; cursor: pointer; }
     .player-card.selected { border: 2px solid #22c55e; background: #1e293b; }
-    .player-card img { width: 36px; height: 36px; border-radius: 50%; margin-right: 8px; object-fit: cover; }
+    .player-card img { width: 32px; height: 32px; border-radius: 50%; margin-right: 8px; object-fit: cover; }
     .player-list { max-height: 250px; overflow-y: auto; background: #0f172a; padding: 8px; border-radius: 6px; }
-    
+    .flag { font-size: 16px; margin-right: 6px; }
+
     .slider-val { font-weight: bold; color: #22c55e; }
     table { width: 100%; border-collapse: collapse; font-size: 13px; text-align: center; }
     th, td { border: 1px solid #334155; padding: 6px; }
@@ -81,7 +82,7 @@
     
     <div class="card">
       <h2 id="disp-team-name">Takımım</h2>
-      <p style="font-size:12px; color:#22c55e;">💡 <b>İpucu:</b> Oyuncunuza dokunun, ardından yerleştirmek istediğiniz saha kutusuna dokunun!</p>
+      <p style="font-size:12px; color:#22c55e;">💡 <b>İpucu:</b> Kadronuzdaki oyuncuya dokunun, ardından sahadaki pozisyona dokunun!</p>
       
       <div class="pitch">
         <div class="slot pos-SF" id="slot-SF" onclick="slotSec('SF')">FORVET</div>
@@ -91,21 +92,23 @@
       </div>
     </div>
 
+    <!-- TAKIM KADROSU VE YENİ OYUNCU EKLEME -->
     <div class="card">
       <h3>Takım Kadrosu (<span id="player-count">0</span>/16)</h3>
       <div class="player-list" id="squad-container"></div>
 
-      <h4 style="margin-top:15px;">Yeni Oyuncu Ekle</h4>
-      <input type="text" id="p-name" placeholder="Oyuncu Adı (Örn: Burak Yılmaz)">
-      <input type="number" id="p-ovr" placeholder="Mevcut Overall (Örn: 80)">
-      <input type="number" id="p-pot" placeholder="Potansiyel (Örn: 87)">
+      <h4 style="margin-top:15px;">Kadroya Yeni Oyuncu Ekle</h4>
+      <input type="text" id="p-name" placeholder="Oyuncu Adı (Örn: Mateta)">
+      <input type="text" id="p-country" placeholder="Ülke Bayrağı veya Kodu (ZORUNLU - Örn: 🇫🇷 veya FR)">
+      <input type="number" id="p-ovr" placeholder="Overall (Örn: 82)">
+      <input type="number" id="p-pot" placeholder="Potansiyel (Örn: 86)">
       <input type="text" id="p-img" placeholder="Fotoğraf URL'si (İsteğe bağlı)">
       <button type="button" onclick="oyuncuEkle()">Kadroya Oyuncu Ekle</button>
     </div>
 
     <div class="card">
-      <h3>OSM Oyun Planları & Taktikler</h3>
-      <label><b>Oyun Stili / Taktik Planı:</b></label>
+      <h3>OSM Taktikler</h3>
+      <label><b>Oyun Stili:</b></label>
       <select id="t-style" onchange="taktikKaydet()">
         <option value="pas">⚽ Paslaşarak Oyun</option>
         <option value="kontra">⚡ Hızlı Kontra Atak</option>
@@ -116,15 +119,15 @@
       </select>
 
       <div style="margin-top:12px;">
-        <label>Baskı (Rakibe Pres): <span id="v-baski" class="slider-val">50%</span></label>
+        <label>Baskı: <span id="v-baski" class="slider-val">50%</span></label>
         <input type="range" id="r-baski" min="0" max="100" value="50" oninput="updateSlider('baski')">
       </div>
       <div>
-        <label>Stil (Hücum / Savunma): <span id="v-stil" class="slider-val">50%</span></label>
+        <label>Stil: <span id="v-stil" class="slider-val">50%</span></label>
         <input type="range" id="r-stil" min="0" max="100" value="50" oninput="updateSlider('stil')">
       </div>
       <div>
-        <label>Tempo (Pas Hızı): <span id="v-tempo" class="slider-val">50%</span></label>
+        <label>Tempo: <span id="v-tempo" class="slider-val">50%</span></label>
         <input type="range" id="r-tempo" min="0" max="100" value="50" oninput="updateSlider('tempo')">
       </div>
     </div>
@@ -147,7 +150,6 @@
 
   </div>
 
-  <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
@@ -172,8 +174,8 @@
 
     let myTeamId = localStorage.getItem('myTeamId') || null;
     let squad = [
-      { id: 101, name: "Burak Yılmaz", ovr: 82, pot: 85, img: "https://cdn-icons-png.flaticon.com/512/847/847969.png" },
-      { id: 102, name: "Semih Kılıçsoy", ovr: 78, pot: 88, img: "https://cdn-icons-png.flaticon.com/512/847/847969.png" }
+      { id: 1, name: "Burak Yılmaz", country: "🇹🇷", ovr: 82, pot: 85, img: "https://cdn-icons-png.flaticon.com/512/847/847969.png" },
+      { id: 2, name: "Mateta", country: "🇫🇷", ovr: 82, pot: 86, img: "https://cdn-icons-png.flaticon.com/512/847/847969.png" }
     ];
     let selectedPlayer = null;
     let currentWeek = 1;
@@ -196,7 +198,6 @@
       btn.innerText = "Giriş Yapılıyor...";
       btn.disabled = true;
 
-      // Her yeni oyuncuya benzersiz rastgele kimlik üret
       const uniqueId = 'team_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
 
       if (!db) {
@@ -211,7 +212,7 @@
         const teamKeys = Object.keys(teams);
 
         if (teamKeys.length >= 6) {
-          alert('Lig dolu! Maksimum 6 takım katılabilir.');
+          alert('Lig dolu!');
           btn.innerText = "🚀 Lige Katıl";
           btn.disabled = false;
           return;
@@ -226,9 +227,7 @@
           tactics: { baski: 50, stil: 50, tempo: 50, style: 'pas' },
           squad: squad
         }).then(() => {
-          // Takım katıldığında fikstürü yeniden oluştur
-          const updatedTeamIds = [...teamKeys, myTeamId];
-          fiksturOlustur(updatedTeamIds);
+          fiksturOlustur([...teamKeys, myTeamId]);
           initGame(name);
         });
       }).catch(err => {
@@ -242,7 +241,6 @@
       if (!db || teamIds.length < 2) return;
       let schedule = [];
 
-      // Ligdeki takımlar arasında devreli eşleşme oluştur
       for (let week = 1; week <= 10; week++) {
         let matches = [];
         for (let i = 0; i < teamIds.length; i++) {
@@ -259,20 +257,25 @@
     }
 
     function oyuncuEkle() {
-      if (squad.length >= 16) return alert('Kadro limiti dolu! (Maksimum 16 oyuncu)');
+      if (squad.length >= 16) return alert('Kadro limitiniz dolu! (Maksimum 16 oyuncu)');
+
       const name = document.getElementById('p-name').value.trim();
+      const country = document.getElementById('p-country').value.trim();
       const ovr = parseInt(document.getElementById('p-ovr').value);
       const pot = parseInt(document.getElementById('p-pot').value);
       const img = document.getElementById('p-img').value.trim() || defaultImg;
 
-      if (!name || isNaN(ovr) || isNaN(pot)) return alert('Lütfen isim, overall ve potansiyel bilgilerini eksiksiz girin!');
+      if (!name) return alert('Lütfen oyuncu adını girin!');
+      if (!country) return alert('Ülke bilgisi (bayrak veya kodu) ZORUNLUDUR!');
+      if (isNaN(ovr) || isNaN(pot)) return alert('Lütfen overall ve potansiyel değerlerini sayı olarak girin!');
       if (ovr > pot) return alert('Mevcut overall potansiyelden büyük olamaz!');
 
-      const newPlayer = { id: Date.now(), name, ovr, pot, img };
+      const newPlayer = { id: Date.now(), name, country, ovr, pot, img };
       squad.push(newPlayer);
       if (db && myTeamId) db.ref(`teams/${myTeamId}/squad`).set(squad);
 
       document.getElementById('p-name').value = '';
+      document.getElementById('p-country').value = '';
       document.getElementById('p-ovr').value = '';
       document.getElementById('p-pot').value = '';
       document.getElementById('p-img').value = '';
@@ -291,13 +294,13 @@
     }
 
     function slotSec(pos) {
-      if (!selectedPlayer) return alert('Lütfen önce aşağıdan bir oyuncunuza dokunarak seçin!');
+      if (!selectedPlayer) return alert('Önce kadronuzdan bir oyuncuya dokunarak seçin!');
       
       const slotEl = document.getElementById(`slot-${pos}`);
       slotEl.classList.add('filled');
       slotEl.innerHTML = `
         <img src="${selectedPlayer.img}" onerror="this.src='${defaultImg}'">
-        <div class="p-name">${selectedPlayer.name}</div>
+        <div class="p-name">${selectedPlayer.country} ${selectedPlayer.name}</div>
         <div class="p-ovr">${selectedPlayer.ovr}</div>
       `;
       selectedPlayer = null;
@@ -310,7 +313,7 @@
       container.innerHTML = '';
 
       if (squad.length === 0) {
-        container.innerHTML = '<p style="font-size:12px; color:#aaa; text-align:center;">Henüz kadronuzda oyuncu yok.</p>';
+        container.innerHTML = '<p style="font-size:12px; color:#aaa; text-align:center;">Kadronuzda henüz oyuncu yok. Aşağıdan ekleyebilirsiniz.</p>';
         return;
       }
 
@@ -322,6 +325,7 @@
 
         el.innerHTML = `
           <div style="display:flex; align-items:center;">
+            <span class="flag">${p.country || '🏳️'}</span>
             <img src="${p.img}" onerror="this.src='${defaultImg}'">
             <span><b>${p.name}</b> (OVR: ${p.ovr} / POT: ${p.pot})</span>
           </div>
@@ -350,8 +354,8 @@
     }
 
     function haftayiOyna() {
-      if (!db) return alert('Veritabanı bağlantısı henüz kurulmadı!');
-      if (!leagueFixtures || leagueFixtures.length === 0) return alert('Ligde henüz yeterli takım yok, fikstür oluşturulamadı!');
+      if (!db) return alert('Veritabanı bağlantısı yok!');
+      if (!leagueFixtures || leagueFixtures.length === 0) return alert('Fikstür bulunamadı!');
       if (currentWeek > 10) return alert('Lig tamamlandı!');
 
       let weekData = leagueFixtures[currentWeek - 1];
@@ -406,7 +410,6 @@
 
       if (!db) return;
 
-      // Takımları ve puan durumunu canlı dinle
       db.ref('teams').on('value', snapshot => {
         allTeams = snapshot.val() || {};
         const table = document.getElementById('league-table');
@@ -430,20 +433,18 @@
         });
       });
 
-      // Mevcut haftayı canlı dinle
       db.ref('currentWeek').on('value', snapshot => {
         currentWeek = snapshot.val() || 1;
         document.getElementById('current-week-disp').innerText = currentWeek <= 10 ? `Hafta ${currentWeek}` : 'Lig Bitti';
       });
 
-      // Fikstürü canlı dinle
       db.ref('fixtures').on('value', snapshot => {
         leagueFixtures = snapshot.val() || [];
         const container = document.getElementById('fixture-container');
         container.innerHTML = '';
 
         if (leagueFixtures.length === 0) {
-          container.innerHTML = '<p style="font-size:12px; color:#aaa;">Lige yeni takımlar katıldıkça fikstür otomatik güncellenecek.</p>';
+          container.innerHTML = '<p style="font-size:12px; color:#aaa;">Lige takımlar katıldıkça fikstür güncellenecektir.</p>';
           return;
         }
 
@@ -476,7 +477,7 @@
       db.ref(`teams/${myTeamId}`).once('value', snapshot => {
         if (snapshot.exists()) {
           const tData = snapshot.val();
-          if (tData.squad && tData.squad.length > 0) squad = tData.squad;
+          if (tData.squad) squad = tData.squad;
           initGame(tData.name);
         }
       });
