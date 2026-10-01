@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bim Süper Lig - OSM Tarzı Menajerlik</title>
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
     <style>
         :root {
             --primary: #ff6600;
@@ -20,7 +23,6 @@
             margin: 0;
             padding: 0;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            -webkit-tap-highlight-color: transparent;
         }
 
         body {
@@ -63,12 +65,12 @@
             transition: 0.2s;
         }
 
-        .menu-btn:hover, .menu-btn:active {
+        .menu-btn:hover {
             background-color: var(--primary);
             color: white;
         }
 
-        /* Sidebar */
+        /* Sidebar (3 Çizgi Menü) */
         .sidebar {
             position: fixed;
             top: 0;
@@ -121,10 +123,9 @@
             padding: 10px 15px;
             border-radius: 8px;
             transition: 0.2s;
-            cursor: pointer;
         }
 
-        .sidebar-menu li a:hover, .sidebar-menu li a:active {
+        .sidebar-menu li a:hover, .sidebar-menu li a.active {
             background-color: var(--primary);
             color: white;
         }
@@ -186,29 +187,6 @@
             font-size: 1rem;
         }
 
-        .range-group {
-            margin-bottom: 20px;
-        }
-
-        .range-group label {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 8px;
-            font-size: 0.95rem;
-        }
-
-        .range-group span {
-            color: var(--primary);
-            font-weight: bold;
-        }
-
-        input[type="range"] {
-            width: 100%;
-            accent-color: var(--primary);
-            cursor: pointer;
-            background: transparent;
-        }
-
         button.btn {
             background-color: var(--primary);
             color: white;
@@ -222,22 +200,40 @@
             transition: 0.2s;
         }
 
-        button.btn:hover, button.btn:active {
+        button.btn:hover {
             background-color: var(--primary-dark);
         }
 
+        /* Saha Dizilim Alanı */
         .pitch {
             background: linear-gradient(to bottom, #2e7d32, #1b5e20);
             border: 2px solid #ffffff;
             border-radius: 10px;
-            height: 350px;
+            height: 450px;
             position: relative;
             display: flex;
             flex-direction: column;
-            justify-content: center;
+            justify-content: space-around;
             align-items: center;
-            gap: 20px;
             padding: 20px;
+        }
+
+        .pitch-line {
+            position: absolute;
+            width: 100%;
+            height: 2px;
+            background-color: rgba(255,255,255,0.4);
+            top: 50%;
+        }
+
+        .pitch-center {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            border: 2px solid rgba(255,255,255,0.4);
+            border-radius: 50%;
+            top: calc(50% - 40px);
+            left: calc(50% - 40px);
         }
 
         .row-players {
@@ -249,36 +245,18 @@
         }
 
         .player-slot {
-            background-color: rgba(0,0,0,0.8);
+            background-color: rgba(0,0,0,0.7);
             border: 1px dashed var(--primary);
             color: white;
-            padding: 12px;
+            padding: 8px 12px;
             border-radius: 6px;
             font-size: 0.85rem;
             text-align: center;
-            width: 100px;
+            min-width: 75px;
             cursor: pointer;
         }
 
-        .squad-list {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            max-height: 200px;
-            overflow-y: auto;
-            margin-top: 15px;
-        }
-
-        .squad-item {
-            background: #252525;
-            padding: 8px 12px;
-            border-radius: 6px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 0.9rem;
-        }
-
+        /* Canlı Maç Ekranı */
         .match-scorecard {
             display: flex;
             justify-content: space-around;
@@ -333,27 +311,27 @@
 
     <header>
         <div class="logo">⚽ Bim Süper Lig</div>
-        <button class="menu-btn" id="menuToggleBtn">☰</button>
+        <button class="menu-btn" onclick="toggleMenu()">☰</button>
     </header>
 
-    <!-- Yan Menü -->
-    <div class="overlay" id="overlay"></div>
+    <!-- Yan Menü (Sidebar) -->
+    <div class="overlay" id="overlay" onclick="toggleMenu()"></div>
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <h3>Menü</h3>
-            <button class="close-sidebar" id="closeSidebarBtn">✕</button>
+            <button class="close-sidebar" onclick="toggleMenu()">✕</button>
         </div>
         <ul class="sidebar-menu">
-            <li><a data-target="lobby-view">🏠 Lobi & Giriş</a></li>
-            <li><a data-target="squad-view">👕 Saha & Kadro (4 Oyuncu)</a></li>
-            <li><a data-target="tactics-view">🎯 Taktikler</a></li>
-            <li><a data-target="match-view">🏟️ Maç Simülasyonu</a></li>
-            <li><a data-target="table-view">📊 Puan Durumu & Fikstür</a></li>
+            <li><a href="#" onclick="switchView('lobby-view')">🏠 Lobi & Giriş</a></li>
+            <li><a href="#" onclick="switchView('squad-view')">👕 Saha & Kadro</a></li>
+            <li><a href="#" onclick="switchView('tactics-view')">🎯 Taktikler</a></li>
+            <li><a href="#" onclick="switchView('match-view')">🏟️ Maç Simülasyonu</a></li>
+            <li><a href="#" onclick="switchView('table-view')">📊 Puan Durumu</a></li>
         </ul>
     </div>
 
     <main>
-        <!-- 1. LOBİ -->
+        <!-- 1. LOBİ GİRİŞİ -->
         <section id="lobby-view" class="view-section active">
             <div class="card">
                 <h2>Oda ve Takım Seçimi</h2>
@@ -361,31 +339,40 @@
                 <input type="text" id="roomCodeInput" placeholder="Örn: ozeloda1">
                 <label>Takım Adınız:</label>
                 <input type="text" id="teamNameInput" placeholder="Örn: Galatasaray / Bimspor">
-                <button class="btn" id="joinRoomBtn">Odaya Katıl & Kaydet</button>
+                <button class="btn" onclick="joinRoom()">Odaya Katıl & Kaydet</button>
             </div>
         </section>
 
         <!-- 2. SAHA & KADRO -->
         <section id="squad-view" class="view-section">
             <div class="card">
-                <h2>İlk 11 (4 Asıl Oyuncu)</h2>
+                <h2>İlk 11 Saha Dizilimi</h2>
                 <div class="pitch">
-                    <div class="row-players">
-                        <div class="player-slot" data-slot="0">Slot 1 (Boş)</div>
-                        <div class="player-slot" data-slot="1">Slot 2 (Boş)</div>
+                    <div class="pitch-line"></div>
+                    <div class="pitch-center"></div>
+                    <!-- Forvet -->
+                    <div class="row-players" id="slot-fw">
+                        <div class="player-slot" onclick="selectSlot('FW1')">Forvet</div>
+                        <div class="player-slot" onclick="selectSlot('FW2')">Forvet</div>
                     </div>
-                    <div class="row-players">
-                        <div class="player-slot" data-slot="2">Slot 3 (Boş)</div>
-                        <div class="player-slot" data-slot="3">Slot 4 (Boş)</div>
+                    <!-- Orta Saha -->
+                    <div class="row-players" id="slot-mid">
+                        <div class="player-slot" onclick="selectSlot('MID1')">Ortasaha</div>
+                        <div class="player-slot" onclick="selectSlot('MID2')">Ortasaha</div>
+                        <div class="player-slot" onclick="selectSlot('MID3')">Ortasaha</div>
+                    </div>
+                    <!-- Defans -->
+                    <div class="row-players" id="slot-def">
+                        <div class="player-slot" onclick="selectSlot('DEF1')">Defans</div>
+                        <div class="player-slot" onclick="selectSlot('DEF2')">Defans</div>
+                        <div class="player-slot" onclick="selectSlot('DEF3')">Defans</div>
+                        <div class="player-slot" onclick="selectSlot('DEF4')">Defans</div>
+                    </div>
+                    <!-- Kaleci -->
+                    <div class="row-players" id="slot-gk">
+                        <div class="player-slot" onclick="selectSlot('GK')">Kaleci</div>
                     </div>
                 </div>
-            </div>
-
-            <div class="card">
-                <h2>Oyuncu Havuzu (Maksimum 16)</h2>
-                <input type="text" id="newPlayerName" placeholder="Oyuncu Adı (Örn: Alex)">
-                <button class="btn" id="addPlayerBtn">Oyuncu Ekle</button>
-                <div class="squad-list" id="squadListContainer"></div>
             </div>
         </section>
 
@@ -393,32 +380,14 @@
         <section id="tactics-view" class="view-section">
             <div class="card">
                 <h2>Maç Taktiği ve Strateji</h2>
-                
                 <label>Oyun Stili:</label>
                 <select id="playStyle">
                     <option value="passing">Pas Oyunu (Tiki-Taka)</option>
                     <option value="counter">Hızlı Kontra Atak</option>
                     <option value="longball">Uzun Top</option>
                     <option value="press">Sert Pres & Baskı</option>
-                    <option value="shoot">Kaleyi Gördüğünde Vur</option>
                 </select>
-
-                <div class="range-group">
-                    <label>Baskı Gücü: <span id="valPress">50</span>%</label>
-                    <input type="range" id="rangePress" min="0" max="100" value="50">
-                </div>
-
-                <div class="range-group">
-                    <label>Tempo: <span id="valTempo">50</span>%</label>
-                    <input type="range" id="rangeTempo" min="0" max="100" value="50">
-                </div>
-
-                <div class="range-group">
-                    <label>Agresiflik: <span id="valAggression">50</span>%</label>
-                    <input type="range" id="rangeAggression" min="0" max="100" value="50">
-                </div>
-
-                <button class="btn" id="saveTacticsBtn">Taktikleri Kaydet</button>
+                <button class="btn" onclick="saveTactics()">Taktikleri Kaydet</button>
             </div>
         </section>
 
@@ -434,11 +403,11 @@
                 <div class="match-commentary" id="commentaryBox">
                     <div class="comment-item">Maç henüz başlamadı...</div>
                 </div>
-                <button class="btn" id="startMatchBtn">Maçı Başlat (Senkronize Simülasyon)</button>
+                <button class="btn" onclick="startMatchSimulation()">Maçı Başlat (Senkronize Simülasyon)</button>
             </div>
         </section>
 
-        <!-- 5. PUAN DURUMU & FİKSTÜR -->
+        <!-- 5. PUAN DURUMU -->
         <section id="table-view" class="view-section">
             <div class="card">
                 <h2>Lig Puan Durumu</h2>
@@ -454,71 +423,93 @@
                         </tr>
                     </thead>
                     <tbody id="leagueTableBody">
-                        <tr><td colspan="6" style="text-align: center;">Henüz veri yok.</td></tr>
+                        <!-- Kayıtlı verilere göre dolacak -->
                     </tbody>
                 </table>
-            </div>
-
-            <div class="card">
-                <h2>Otomatik Fikstür</h2>
-                <div id="fixtureContainer" style="font-size: 0.9rem; color: var(--text-muted);">
-                    Oda dolduğunda fikstür otomatik oluşturulacak.
-                </div>
             </div>
         </section>
     </main>
 
     <script>
-        // Oyun durumu nesnesi
+        // Firebase Yapılandırması (Ücretsiz genel test veritabanı veya kendi projeniz için güncelleyebilirsiniz)
+        const firebaseConfig = {
+            databaseURL: "https://bim-super-lig-default-rtdb.firebaseio.com/"
+        };
+
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.database();
+
+        // Oyun Verilerini Saklama Objesi
         let gameState = {
             roomCode: "",
             teamName: "",
             tactic: "passing",
-            press: 50,
-            tempo: 50,
-            aggression: 50,
-            players: [], 
-            lineup: [null, null, null, null], 
-            table: {},
-            fixtures: []
+            table: {}
         };
 
+        // Sayfa açıldığında tarayıcı hafızasından (localStorage) kayıtlı verileri yükle
+        window.onload = function() {
+            const savedData = localStorage.getItem('bimSuperLigSave');
+            if (savedData) {
+                try {
+                    gameState = JSON.parse(savedData);
+                    if(gameState.teamName) document.getElementById('teamNameInput').value = gameState.teamName;
+                    if(gameState.roomCode) document.getElementById('roomCodeInput').value = gameState.roomCode;
+                    if(gameState.tactic) document.getElementById('playStyle').value = gameState.tactic;
+                    
+                    // Eğer oda kodu varsa Firebase'den anlık verileri dinlemeye başla
+                    if(gameState.roomCode) {
+                        listenFirebaseRoom(gameState.roomCode);
+                    }
+                } catch(e) { console.error("Kayıt yüklenemedi", e); }
+            }
+            updateTableUI();
+        };
+
+        // Firebase'den Odayı Dinleme ve Veri Senkronizasyonu
+        function listenFirebaseRoom(code) {
+            db.ref('rooms/' + code).on('value', (snapshot) => {
+                const data = snapshot.val();
+                if (data && data.table) {
+                    gameState.table = data.table;
+                    updateTableUI();
+                    saveGame();
+                }
+            });
+        }
+
+        // Verileri Tarayıcıya ve Firebase'e Kaydetme Fonksiyonu
         function saveGame() {
-            try {
-                localStorage.setItem('bimSuperLigSave_v9', JSON.stringify(gameState));
-            } catch(e) { 
-                console.error("Kayıt hatası:", e); 
+            localStorage.setItem('bimSuperLigSave', JSON.stringify(gameState));
+            if (gameState.roomCode) {
+                db.ref('rooms/' + gameState.roomCode).set({
+                    table: gameState.table,
+                    lastUpdated: Date.now()
+                });
             }
         }
 
+        // Yan menü açıp kapatma fonksiyonu
         function toggleMenu() {
             const sidebar = document.getElementById('sidebar');
             const overlay = document.getElementById('overlay');
-            if(sidebar && overlay) {
-                sidebar.classList.toggle('open');
-                overlay.classList.toggle('show');
-            }
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('show');
         }
 
+        // Sayfa geçişleri
         function switchView(viewId) {
-            const sections = document.querySelectorAll('.view-section');
-            sections.forEach(sec => {
-                sec.classList.remove('active');
-                if(sec.id === viewId) {
-                    sec.classList.add('active');
-                }
+            document.querySelectorAll('.view-section').forEach(sec => {
+                sec.classList.toggle('active', sec.id === viewId);
             });
-            toggleMenu();
+            toggleMenu(); 
         }
 
         function joinRoom() {
-            const codeInput = document.getElementById('roomCodeInput');
-            const teamInput = document.getElementById('teamNameInput');
-            if(!codeInput || !teamInput) return;
-
-            const code = codeInput.value.trim();
-            const team = teamInput.value.trim();
-
+            const code = document.getElementById('roomCodeInput').value.trim();
+            const team = document.getElementById('teamNameInput').value.trim();
             if(!code || !team) {
                 alert("Lütfen oda kodu ve takım adını girin!");
                 return;
@@ -526,72 +517,37 @@
             gameState.roomCode = code;
             gameState.teamName = team;
 
-            if(!gameState.table[team]) {
-                gameState.table[team] = { p: 0, o: 0, g: 0, b: 0, m: 0 };
-            }
+            // Önce Firebase'den mevcut oda verilerini çek
+            db.ref('rooms/' + code).once('value', (snapshot) => {
+                const roomData = snapshot.val();
+                if (roomData && roomData.table) {
+                    gameState.table = roomData.table;
+                }
 
-            if(gameState.fixtures.length === 0) {
-                gameState.fixtures = [
-                    `${team} vs Rakip Takım 1`,
-                    `Rakip Takım 2 vs ${team}`,
-                    `${team} vs Şampiyon Spor`
-                ];
-            }
+                // Puan tablosuna takımı ilk kez ekle (Eğer yoksa)
+                if(!gameState.table[team]) {
+                    gameState.table[team] = { p: 0, o: 0, g: 0, b: 0, m: 0 };
+                }
 
-            saveGame();
-            updateUI();
-            alert(`Odaya başarıyla katıldınız: ${team} (${code})`);
-            switchView('squad-view');
-        }
-
-        function addPlayer() {
-            const input = document.getElementById('newPlayerName');
-            if(!input) return;
-            const name = input.value.trim();
-            if(!name) {
-                alert("Oyuncu adı boş olamaz!");
-                return;
-            }
-            if(gameState.players.length >= 16) {
-                alert("Maksimum 16 oyuncu sınırına ulaştınız!");
-                return;
-            }
-
-            gameState.players.push(name);
-            input.value = "";
-            saveGame();
-            updateUI();
-        }
-
-        function assignPlayerToSlot(slotIndex) {
-            if(gameState.players.length === 0) {
-                alert("Önce oyuncu havuzuna oyuncu ekleyin!");
-                return;
-            }
-            let playerListStr = gameState.players.join("\n");
-            let chosen = prompt("İlk 11'e koymak istediğiniz oyuncunun adını yazın:\n\n" + playerListStr);
-            if(chosen && gameState.players.includes(chosen)) {
-                gameState.lineup[slotIndex] = chosen;
                 saveGame();
-                updateUI();
-            }
+                listenFirebaseRoom(code);
+                updateTableUI();
+                alert(`Odaya başarıyla katıldınız ve kaydedildi: ${team} (${code})`);
+                switchView('squad-view');
+            });
+        }
+
+        function selectSlot(slotName) {
+            alert(slotName + " pozisyonu için oyuncu seçimi açıldı.");
         }
 
         function saveTactics() {
-            const playStyle = document.getElementById('playStyle');
-            const rangePress = document.getElementById('rangePress');
-            const rangeTempo = document.getElementById('rangeTempo');
-            const rangeAggression = document.getElementById('rangeAggression');
-
-            if(playStyle) gameState.tactic = playStyle.value;
-            if(rangePress) gameState.press = parseInt(rangePress.value, 10);
-            if(rangeTempo) gameState.tempo = parseInt(rangeTempo.value, 10);
-            if(rangeAggression) gameState.aggression = parseInt(rangeAggression.value, 10);
-            
+            gameState.tactic = document.getElementById('playStyle').value;
             saveGame();
-            alert("Taktikler, Baskı, Tempo ve Agresiflik ayarları başarıyla kaydedildi!");
+            alert("Taktikleriniz kaydedildi!");
         }
 
+        // Herkesin Aynı Sonucu Alması İçin Oda Koduna Göre Sabit (Deterministik) Rastgele Üretici
         function hashCode(str) {
             let hash = 0;
             for (let i = 0; i < str.length; i++) {
@@ -603,28 +559,34 @@
 
         function startMatchSimulation() {
             const commentaryBox = document.getElementById('commentaryBox');
-            const homeTeamLbl = document.getElementById('homeTeamLbl');
-            const awayTeamLbl = document.getElementById('awayTeamLbl');
-            const scoreLbl = document.getElementById('scoreLbl');
-
-            if(!commentaryBox) return;
-
             const homeTeam = gameState.teamName || "Ev Sahibi";
             const awayTeam = "Rakip Takım";
 
-            if(homeTeamLbl) homeTeamLbl.innerText = homeTeam;
-            if(awayTeamLbl) awayTeamLbl.innerText = awayTeam;
+            document.getElementById('homeTeamLbl').innerText = homeTeam;
+            document.getElementById('awayTeamLbl').innerText = awayTeam;
 
-            commentaryBox.innerHTML = `<div class="comment-item">0' Maç başladı! (Baskı: ${gameState.press}%, Tempo: ${gameState.tempo}%, Agresiflik: ${gameState.aggression}%)</div>`;
+            commentaryBox.innerHTML = `<div class="comment-item">0' Maç hakemin düdüğüyle başladı!</div>`;
 
-            let seed = hashCode(gameState.roomCode + homeTeam + gameState.press);
-            let homeGoals = seed % 4;
+            // Oda koduna ve takım adına göre herkesin aynı skoru üretmesini sağlayan mantık
+            let seed = hashCode(gameState.roomCode + homeTeam);
+            let homeGoals = seed % 3; // 0 ile 2 arası sabit skor
             let awayGoals = (seed >> 2) % 3;
 
             setTimeout(() => {
-                commentaryBox.innerHTML += `<div class="comment-item">35' Belirlediğiniz taktiksel oranlarla oyun kontrole alındı.</div>`;
+                if(homeGoals > 0) {
+                    commentaryBox.innerHTML += `<div class="comment-item">28' GOOOLL! ${homeTeam} öne geçiyor!</div>`;
+                    document.getElementById('scoreLbl').innerText = `${homeGoals} - 0`;
+                } else {
+                    commentaryBox.innerHTML += `<div class="comment-item">30' Orta saha mücadelesi şeklinde geçiyor.</div>`;
+                }
             }, 1500);
 
             setTimeout(() => {
-                if(scoreLbl) scoreLbl.innerText = `${homeGoals} - ${awayGoals}`;
-                commentaryBox.innerHTML += `<div class="comment-item">90' Maç bitti! Sonuç: $
+                document.getElementById('scoreLbl').innerText = `${homeGoals} - ${awayGoals}`;
+                commentaryBox.innerHTML += `<div class="comment-item">90' Maç bitti! Sonuç: ${homeTeam} ${homeGoals} - ${awayGoals} ${awayTeam}</div>`;
+
+                // Puan durumunu güncelle ve kaydet
+                if(!gameState.table[homeTeam]) {
+                    gameState.table[homeTeam] = { p: 0, o: 0, g: 0, b: 0, m: 0 };
+                }
+                let stats = gameStat
