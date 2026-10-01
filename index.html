@@ -10,11 +10,10 @@
     .card { background: #1e293b; padding: 15px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #334155; }
     h2, h3, h4 { color: #22c55e; margin-top: 0; }
     input, select, button { width: 100%; padding: 12px; margin: 6px 0; border-radius: 8px; border: 1px solid #475569; background: #0f172a; color: #fff; font-size: 14px; }
-    button { background: #22c55e; font-weight: bold; cursor: pointer; border: none; color: #000; font-size: 16px; transition: all 0.2s; }
+    button { background: #22c55e; font-weight: bold; cursor: pointer; border: none; color: #000; font-size: 16px; }
     button:active { transform: scale(0.98); }
     button.danger { background: #ef4444; color: #fff; }
     button.sim-btn { background: #f59e0b; color: #000; font-size: 15px; }
-    button.direct-btn { background: #3b82f6; color: #fff; margin-top: 10px; }
 
     /* OSM 11'Lİ SAHA TASARIMI */
     .pitch { 
@@ -79,10 +78,9 @@
   <!-- LOBİ / TAKIM GİRİŞİ -->
   <div class="card" id="sec-login">
     <h2>BimSüperlig - Lige Katıl</h2>
-    <p style="font-size: 12px; color: #94a3b8;">Maksimum 6 Takım katılabilir.</p>
-    <input type="text" id="in-team-name" placeholder="Takım Adınızı Yazın..." value="Benim Takımım">
-    <button id="btn-login" type="button" onclick="takimKaydet()">Lige Katıl (Çevrimiçi)</button>
-    <button class="direct-btn" type="button" onclick="direktOyunaGir()">⚡ Doğrudan Oyuna Geç (Hızlı Giriş)</button>
+    <p style="font-size: 12px; color: #94a3b8;">Takım adınızı yazıp oyuna başlayın.</p>
+    <input type="text" id="in-team-name" placeholder="Takım Adınızı Yazın..." value="Eraykent Spor">
+    <button type="button" onclick="oyunaBaslat()">🚀 Lige Katıl ve Oyuna Başla</button>
   </div>
 
   <!-- ANA OYUN EKRANI -->
@@ -125,7 +123,7 @@
     <div class="card">
       <h3>OSM Oyun Planları & Taktikler</h3>
       <label><b>Oyun Stili / Taktik Planı:</b></label>
-      <select id="t-style" onchange="taktikKaydet()">
+      <select id="t-style">
         <option value="pas">⚽ Paslaşarak Oyun</option>
         <option value="kontra">⚡ Hızlı Kontra Atak</option>
         <option value="uzun">🚀 Uzun Top</option>
@@ -166,102 +164,30 @@
 
   </div>
 
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-
   <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyAQin6wcbsZ1leZCAFE6NfncSjEhg9ntIg",
-      authDomain: "bimsuperlig.firebaseapp.com",
-      databaseURL: "https://bimsuperlig-default-rtdb.firebaseio.com",
-      projectId: "bimsuperlig",
-      storageBucket: "bimsuperlig.firebasestorage.app",
-      messagingSenderId: "451832283043",
-      appId: "1:451832283043:web:914a7c63b6d77ddaa72416"
-    };
-
-    let db = null;
-    try {
-      if (typeof firebase !== 'undefined' && !firebase.apps.length) {
-        firebase.initializeApp(firebaseConfig);
-        db = firebase.database();
-      }
-    } catch(e) {}
-
-    let myTeamId = localStorage.getItem('myTeamId') || null;
-    let squad = [];
+    let squad = [
+      { id: 1, name: "Burak Yılmaz", ovr: 82, pot: 85, img: "https://cdn-icons-png.flaticon.com/512/847/847969.png" },
+      { id: 2, name: "Semih Kılıçsoy", ovr: 78, pot: 88, img: "https://cdn-icons-png.flaticon.com/512/847/847969.png" }
+    ];
     let currentWeek = 1;
-    let allTeams = {};
-    let leagueFixtures = [];
+    let myTeamName = "Eraykent Spor";
     const defaultImg = "https://cdn-icons-png.flaticon.com/512/847/847969.png";
 
-    function direktOyunaGir() {
-      const name = document.getElementById('in-team-name').value.trim() || "Süper Takım";
-      myTeamId = 'team_' + Date.now();
-      localStorage.setItem('myTeamId', myTeamId);
-      initGame(name);
+    function oyunaBaslat() {
+      const val = document.getElementById('in-team-name').value.trim();
+      if(val) myTeamName = val;
+      
+      document.getElementById('sec-login').style.display = 'none';
+      document.getElementById('sec-game').style.display = 'block';
+      document.getElementById('disp-team-name').innerText = myTeamName;
+      
+      renderSquad();
+      puanTablosuGuncelle();
     }
 
     function updateSlider(type) {
       const val = document.getElementById('r-' + type).value;
       document.getElementById('v-' + type).innerText = val + '%';
-      taktikKaydet();
-    }
-
-    function takimKaydet() {
-      const name = document.getElementById('in-team-name').value.trim() || "Süper Takım";
-      
-      if (!db) {
-        direktOyunaGir();
-        return;
-      }
-
-      db.ref('teams').once('value').then(snapshot => {
-        const teams = snapshot.val() || {};
-        const teamKeys = Object.keys(teams);
-        if (teamKeys.length >= 6) {
-          alert('Lig dolu! Doğrudan moda geçiliyor.');
-          direktOyunaGir();
-          return;
-        }
-
-        const newRef = db.ref('teams').push();
-        myTeamId = newRef.key;
-        localStorage.setItem('myTeamId', myTeamId);
-
-        newRef.set({
-          name: name,
-          pts: 0, o: 0, g: 0, b: 0, m: 0, ag: 0, yg: 0, av: 0,
-          tactics: { baski: 50, stil: 50, tempo: 50, style: 'pas' },
-          squad: []
-        }).then(() => {
-          if (teamKeys.length + 1 === 6) {
-            fiksturOlustur(Object.keys({...teams, [myTeamId]: true}));
-          }
-          initGame(name);
-        }).catch(() => direktOyunaGir());
-      }).catch(() => direktOyunaGir());
-    }
-
-    function fiksturOlustur(teamIds) {
-      if (!db) return;
-      let schedule = [];
-      for (let week = 1; week <= 10; week++) {
-        let matches = [];
-        if(week <= 5) {
-          matches.push({ home: teamIds[0], away: teamIds[week], played: false, homeGoals: 0, awayGoals: 0, goalDetails: [] });
-          matches.push({ home: teamIds[(week%5)+1], away: teamIds[((week+3)%5)+1], played: false, homeGoals: 0, awayGoals: 0, goalDetails: [] });
-          matches.push({ home: teamIds[((week+1)%5)+1], away: teamIds[((week+2)%5)+1], played: false, homeGoals: 0, awayGoals: 0, goalDetails: [] });
-        } else {
-          let w = week - 5;
-          matches.push({ home: teamIds[w], away: teamIds[0], played: false, homeGoals: 0, awayGoals: 0, goalDetails: [] });
-          matches.push({ home: teamIds[((w+3)%5)+1], away: teamIds[(w%5)+1], played: false, homeGoals: 0, awayGoals: 0, goalDetails: [] });
-          matches.push({ home: teamIds[((w+2)%5)+1], away: teamIds[((w+1)%5)+1], played: false, homeGoals: 0, awayGoals: 0, goalDetails: [] });
-        }
-        schedule.push({ week: week, matches: matches });
-      }
-      db.ref('fixtures').set(schedule);
-      db.ref('currentWeek').set(1);
     }
 
     function oyuncuEkle() {
@@ -274,9 +200,7 @@
       if (!name || isNaN(ovr) || isNaN(pot)) return alert('Lütfen isim, overall ve potansiyel bilgilerini eksiksiz girin!');
       if (ovr > pot) return alert('Mevcut overall potansiyelden büyük olamaz!');
 
-      const newPlayer = { id: Date.now(), name, ovr, pot, img };
-      squad.push(newPlayer);
-      if (db && myTeamId) db.ref(`teams/${myTeamId}/squad`).set(squad);
+      squad.push({ id: Date.now(), name, ovr, pot, img });
 
       document.getElementById('p-name').value = '';
       document.getElementById('p-ovr').value = '';
@@ -287,7 +211,6 @@
 
     function oyuncuSil(id) {
       squad = squad.filter(p => p.id !== id);
-      if (db && myTeamId) db.ref(`teams/${myTeamId}/squad`).set(squad);
       renderSquad();
     }
 
@@ -297,7 +220,7 @@
       container.innerHTML = '';
 
       if (squad.length === 0) {
-        container.innerHTML = '<p style="font-size:12px; color:#aaa; text-align:center;">Henüz kadronuzda oyuncu yok. Aşağıdan oyuncu ekleyin.</p>';
+        container.innerHTML = '<p style="font-size:12px; color:#aaa; text-align:center;">Henüz kadronuzda oyuncu yok.</p>';
         return;
       }
 
@@ -322,7 +245,6 @@
       try {
         const data = JSON.parse(ev.dataTransfer.getData("text/plain"));
         const slotEl = document.getElementById(`slot-${pos}`);
-        
         slotEl.classList.add('filled');
         slotEl.innerHTML = `
           <img src="${data.img}" onerror="this.src='${defaultImg}'">
@@ -332,129 +254,46 @@
       } catch (err) {}
     }
 
-    function taktikKaydet() {
-      if (!myTeamId || !db) return;
-      db.ref(`teams/${myTeamId}/tactics`).set({
-        baski: document.getElementById('r-baski').value,
-        stil: document.getElementById('r-stil').value,
-        tempo: document.getElementById('r-tempo').value,
-        style: document.getElementById('t-style').value
-      });
-    }
-
-    function golcuSec(team) {
-      if (team && team.squad && team.squad.length > 0) {
-        let p = team.squad[Math.floor(Math.random() * team.squad.length)];
-        return p.name;
+    function golcuSec() {
+      if (squad.length > 0) {
+        return squad[Math.floor(Math.random() * squad.length)].name;
       }
-      return "Oyuncu";
+      return "Golcü Oyuncu";
     }
 
     function haftayiOyna() {
-      if (!leagueFixtures || leagueFixtures.length === 0) {
-        // Yerel simülasyon testi
-        let hScore = Math.floor(Math.random() * 3);
-        let aScore = Math.floor(Math.random() * 3);
-        const container = document.getElementById('fixture-container');
-        container.innerHTML = `<div class="fixture-item"><b>Takımım ${hScore} - ${aScore} Rakip Takım</b><br><small>⚽ dk '${Math.floor(Math.random()*80)+1} ${golcuSec({squad:squad})}</small></div>`;
-        return;
-      }
       if (currentWeek > 10) return alert('Lig tamamlandı!');
 
-      let weekData = leagueFixtures[currentWeek - 1];
-      if (!weekData) return;
+      let hScore = Math.floor(Math.random() * 4);
+      let aScore = Math.floor(Math.random() * 3);
 
-      weekData.matches.forEach(m => {
-        let tHome = allTeams[m.home];
-        let tAway = allTeams[m.away];
-
-        let hScore = Math.floor(Math.random() * 3);
-        let aScore = Math.floor(Math.random() * 3);
-
-        if (tHome?.tactics?.style === 'otobus') aScore = Math.max(0, aScore - 1);
-        if (tAway?.tactics?.style === 'otobus') hScore = Math.max(0, hScore - 1);
-
-        m.homeGoals = hScore;
-        m.awayGoals = aScore;
-        m.played = true;
-        m.goalDetails = [];
-
-        for (let i = 0; i < hScore; i++) {
-          m.goalDetails.push({ team: 'home', text: `⚽ dk '${Math.floor(Math.random() * 88) + 1} ${golcuSec(tHome)}` });
-        }
-
-        for (let i = 0; i < aScore; i++) {
-          m.goalDetails.push({ team: 'away', text: `⚽ dk '${Math.floor(Math.random() * 88) + 1} ${golcuSec(tAway)}` });
-        }
-
-        if (tHome && tAway) {
-          tHome.o += 1; tAway.o += 1;
-          tHome.ag += hScore; tHome.yg += aScore; tHome.av = tHome.ag - tHome.yg;
-          tAway.ag += aScore; tAway.yg += hScore; tAway.av = tAway.ag - tAway.yg;
-
-          if (hScore > aScore) { tHome.g += 1; tHome.pts += 3; tAway.m += 1; }
-          else if (aScore > hScore) { tAway.g += 1; tAway.pts += 3; tHome.m += 1; }
-          else { tHome.b += 1; tHome.pts += 1; tAway.b += 1; tAway.pts += 1; }
-
-          if (db) {
-            db.ref(`teams/${m.home}`).update(tHome);
-            db.ref(`teams/${m.away}`).update(tAway);
-          }
-        }
-      });
-
-      if (db) {
-        db.ref(`fixtures/${currentWeek - 1}`).set(weekData);
-        db.ref('currentWeek').set(currentWeek + 1);
+      let goals = [];
+      for(let i=0; i<hScore; i++) {
+        goals.push(`⚽ dk '${Math.floor(Math.random()*85)+1} ${golcuSec()} (${myTeamName})`);
       }
+      for(let i=0; i<aScore; i++) {
+        goals.push(`⚽ dk '${Math.floor(Math.random()*85)+1} Rakip Oyuncu (Rakip FC)`);
+      }
+
+      const container = document.getElementById('fixture-container');
+      container.innerHTML = `
+        <div class="fixture-item">
+          <div><b>Hafta ${currentWeek}: ${myTeamName} ${hScore} - ${aScore} Rakip FC</b></div>
+          <div class="goal-list">${goals.map(g => `<div class="goal-item">${g}</div>`).join('')}</div>
+        </div>
+      ` + container.innerHTML;
+
+      currentWeek++;
+      document.getElementById('current-week-disp').innerText = currentWeek <= 10 ? `Hafta ${currentWeek}` : 'Lig Bitti';
     }
 
-    function initGame(teamName) {
-      document.getElementById('sec-login').style.display = 'none';
-      document.getElementById('sec-game').style.display = 'block';
-      document.getElementById('disp-team-name').innerText = teamName;
-      
-      if (!db) return;
-
-      db.ref('teams').on('value', snapshot => {
-        allTeams = snapshot.val() || {};
-        const table = document.getElementById('league-table');
-        table.innerHTML = '';
-        
-        let sortedTeams = Object.values(allTeams).sort((a,b) => b.pts - a.pts || b.av - a.av);
-
-        sortedTeams.forEach(t => {
-          table.innerHTML += `
-            <tr>
-              <td><b>${t.name}</b></td>
-              <td>${t.o}</td>
-              <td>${t.g}</td>
-              <td>${t.b}</td>
-              <td>${t.m}</td>
-              <td>${t.ag}</td>
-              <td>${t.yg}</td>
-              <td>${t.av}</td>
-              <td><b>${t.pts}</b></td>
-            </tr>`;
-        });
-      });
-
-      db.ref('currentWeek').on('value', snapshot => {
-        currentWeek = snapshot.val() || 1;
-        document.getElementById('current-week-disp').innerText = currentWeek <= 10 ? `Hafta ${currentWeek}` : 'Lig Bitti';
-      });
-
-      db.ref('fixtures').on('value', snapshot => {
-        leagueFixtures = snapshot.val() || [];
-        const container = document.getElementById('fixture-container');
-        container.innerHTML = '';
-
-        if (leagueFixtures.length === 0) {
-          container.innerHTML = '<p style="font-size:12px; color:#aaa;">6 takım katıldığında fikstür otomatik oluşturulacak.</p>';
-          return;
-        }
-
-        let weekMatches = leagueFixtures[Math.min(currentWeek - 1, 9)]?.matches || [];
-        weekMatches.forEach(m => {
-          let hName = allTeams[m.home]?.name || 'Takım';
-          let aName = allTeams[m.away]?.name
+    function puanTablosuGuncelle() {
+      const table = document.getElementById('league-table');
+      table.innerHTML = `
+        <tr><td><b>${myTeamName}</b></td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td><b>0</b></td></tr>
+        <tr><td>Rakip FC</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td><b>0</b></td></tr>
+      `;
+    }
+  </script>
+</body>
+</html>
