@@ -90,7 +90,6 @@
     .speed-btn { background: #3a506b; color: #fff; padding: 8px; border-radius: 6px; font-size: 12px; }
     .speed-btn.active { background: #f97316; }
 
-    /* LOG GEÇMİŞİ BÖLÜMÜ STİLİ */
     .log-box { max-height: 350px; overflow-y: auto; background: #0b132b; border: 1px solid #3a506b; border-radius: 8px; padding: 10px; font-size: 12px; }
     .log-item { padding: 8px; border-bottom: 1px solid #1c2541; display: flex; justify-content: space-between; align-items: center; }
     .log-time { color: #f97316; font-weight: bold; font-size: 11px; margin-right: 10px; }
@@ -154,10 +153,10 @@
           <h3>4'lü Saha Dizilimi</h3>
           <p style="font-size:11px; color:#f97316;">💡 Oyuncuya dokunun, ardından sahadaki pozisyona yerleştirin.</p>
           <div class="pitch">
-            <div class="slot pos-SF" id="slot-SF">FORVET</div>
-            <div class="slot pos-OS" id="slot-OS">ORTA SAHA</div>
-            <div class="slot pos-DEF" id="slot-DEF">DEFANS</div>
-            <div class="slot pos-KL" id="slot-KL">KALECİ</div>
+            <div class="slot pos-SF" id="slot-SF" data-pos="SF">FORVET</div>
+            <div class="slot pos-OS" id="slot-OS" data-pos="OS">ORTA SAHA</div>
+            <div class="slot pos-DEF" id="slot-DEF" data-pos="DEF">DEFANS</div>
+            <div class="slot pos-KL" id="slot-KL" data-pos="KL">KALECİ</div>
           </div>
         </div>
 
@@ -264,9 +263,9 @@
     </div>
 
     <div class="speed-controls">
-      <button class="speed-btn active" id="sp-1">1x Hız</button>
-      <button class="speed-btn" id="sp-2">2x Hız</button>
-      <button class="speed-btn" id="sp-4">4x Hız</button>
+      <button class="speed-btn active" id="sp-1" data-speed="1000">1x Hız</button>
+      <button class="speed-btn" id="sp-2" data-speed="500">2x Hız</button>
+      <button class="speed-btn" id="sp-4" data-speed="250">4x Hız</button>
     </div>
 
     <button id="btn-close-sim" style="margin-top:15px; display:none; background:#22c55e;">Maçı Tamamla ve Menüye Dön</button>
@@ -276,7 +275,7 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
   <script>
-    document.addEventListener("DOMContentLoaded", function() {
+    window.addEventListener("load", function() {
       
       let db = null;
       let leagueCode = "ozeloda1";
@@ -320,7 +319,6 @@
         } catch(e) { console.log("Firebase baglanti uyarisi:", e); }
       }
 
-      // SİSTEM LOGLAMA FONKSİYONU
       function addLog(actionText) {
         const now = new Date();
         const timeStr = now.toTimeString().split(' ')[0];
@@ -356,39 +354,43 @@
         });
       }
 
-      // EVENT LISTENERS (TIKLAMA OLAYLARI)
-      document.getElementById('btn-start').onclick = startGame;
-      document.getElementById('btn-open-menu').onclick = toggleMenu;
-      document.getElementById('btn-close-menu').onclick = toggleMenu;
-      document.getElementById('btn-add-p').onclick = oyuncuEkle;
-      document.getElementById('btn-sim-match').onclick = startMatchSimulation;
-      document.getElementById('btn-close-sim').onclick = closeMatchModal;
-      document.getElementById('btn-clear-logs').onclick = () => {
-        userLogs = [];
-        localStorage.removeItem('userLogs');
-        renderLogs();
-      };
+      // GLOBAL TIKLAMA YÖNETİMİ (EVENT DELEGATION) - BUTONLARIN ÇALIŞMASINI GARANTİLER
+      document.addEventListener('click', function(e) {
+        const target = e.target;
 
-      document.getElementById('r-baski').onchange = (e) => addLog(`Baskı ayarı %${e.target.value} yapıldı.`);
-      document.getElementById('r-tempo').onchange = (e) => addLog(`Tempo ayarı %${e.target.value} yapıldı.`);
-      document.getElementById('r-agresif').onchange = (e) => addLog(`Agresiflik ayarı %${e.target.value} yapıldı.`);
-      document.getElementById('t-style').onchange = (e) => addLog(`Taktik stili değiştirildi: ${e.target.options[e.target.selectedIndex].text}`);
-
-      document.getElementById('r-baski').oninput = (e) => document.getElementById('v-baski').innerText = e.target.value + '%';
-      document.getElementById('r-tempo').oninput = (e) => document.getElementById('v-tempo').innerText = e.target.value + '%';
-      document.getElementById('r-agresif').oninput = (e) => document.getElementById('v-agresif').innerText = e.target.value + '%';
-
-      document.getElementById('sp-1').onclick = () => changeSpeed(1000, 'sp-1');
-      document.getElementById('sp-2').onclick = () => changeSpeed(500, 'sp-2');
-      document.getElementById('sp-4').onclick = () => changeSpeed(250, 'sp-4');
-
-      document.querySelectorAll('.menu-list li').forEach(item => {
-        item.onclick = function() { showPage(this.getAttribute('data-page')); };
+        if (target.id === 'btn-start') { startGame(); }
+        else if (target.id === 'btn-open-menu' || target.id === 'btn-close-menu') { toggleMenu(); }
+        else if (target.id === 'btn-add-p') { oyuncuEkle(); }
+        else if (target.id === 'btn-sim-match') { startMatchSimulation(); }
+        else if (target.id === 'btn-close-sim') { closeMatchModal(); }
+        else if (target.id === 'btn-clear-logs') {
+          userLogs = [];
+          localStorage.removeItem('userLogs');
+          renderLogs();
+        }
+        else if (target.classList.contains('speed-btn')) {
+          const speed = parseInt(target.getAttribute('data-speed'));
+          changeSpeed(speed, target.id);
+        }
+        else if (target.closest('.menu-list li')) {
+          const li = target.closest('.menu-list li');
+          showPage(li.getAttribute('data-page'));
+        }
+        else if (target.closest('.slot')) {
+          const slot = target.closest('.slot');
+          slotSec(slot.getAttribute('data-pos'));
+        }
       });
 
-      ['SF', 'OS', 'DEF', 'KL'].forEach(pos => {
-        document.getElementById(`slot-${pos}`).onclick = () => slotSec(pos);
-      });
+      // SLIDER VE SELECT EVENTLERİ
+      document.getElementById('r-baski').addEventListener('change', (e) => addLog(`Baskı ayarı %${e.target.value} yapıldı.`));
+      document.getElementById('r-tempo').addEventListener('change', (e) => addLog(`Tempo ayarı %${e.target.value} yapıldı.`));
+      document.getElementById('r-agresif').addEventListener('change', (e) => addLog(`Agresiflik ayarı %${e.target.value} yapıldı.`));
+      document.getElementById('t-style').addEventListener('change', (e) => addLog(`Taktik stili değiştirildi: ${e.target.options[e.target.selectedIndex].text}`));
+
+      document.getElementById('r-baski').addEventListener('input', (e) => document.getElementById('v-baski').innerText = e.target.value + '%');
+      document.getElementById('r-tempo').addEventListener('input', (e) => document.getElementById('v-tempo').innerText = e.target.value + '%');
+      document.getElementById('r-agresif').addEventListener('input', (e) => document.getElementById('v-agresif').innerText = e.target.value + '%');
 
       function startGame() {
         const lInput = document.getElementById('in-league-code').value.trim();
@@ -445,7 +447,4 @@
       }
 
       function checkAndGenerateFixtures() {
-        let teams = Object.values(allLeagueTeams);
-        if (teams.length >= 2 && fixtures.length === 0) {
-          fixtures = [
-            { round: 1, home: teams[0].id, away: teams[1].id, played: false, hGoals: 0, aGoals:
+        l
