@@ -10,12 +10,11 @@
     .card { background: #1e293b; padding: 15px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #334155; }
     h2, h3, h4 { color: #22c55e; margin-top: 0; }
     input, select, button { width: 100%; padding: 10px; margin: 5px 0; border-radius: 6px; border: 1px solid #475569; background: #0f172a; color: #fff; }
-    button { background: #22c55e; font-weight: bold; cursor: pointer; border: none; color: #000; transition: background 0.2s; }
+    button { background: #22c55e; font-weight: bold; cursor: pointer; border: none; color: #000; font-size: 16px; }
     button:hover { background: #16a34a; color: #fff; }
     button.danger { background: #ef4444; color: #fff; }
     button.sim-btn { background: #f59e0b; color: #000; font-size: 15px; }
 
-    /* OSM 11'Lİ SAHA TASARIMI */
     .pitch { 
       background: linear-gradient(180deg, #15803d 0%, #166534 100%); 
       border: 3px solid #fff; 
@@ -46,7 +45,6 @@
     .slot .p-name { font-weight: bold; font-size: 9px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; color: #fff; }
     .slot .p-ovr { background: #22c55e; color: #000; font-weight: bold; padding: 1px 4px; border-radius: 3px; font-size: 9px; }
 
-    /* Formasyon Pozisyonları */
     .pos-KL  { bottom: 10px; left: calc(50% - 37.5px); }
     .pos-SLB { bottom: 85px; left: 10px; }
     .pos-STP1{ bottom: 80px; left: 28%; }
@@ -80,13 +78,13 @@
     <h2>BimSüperlig - Lige Katıl</h2>
     <p style="font-size: 12px; color: #94a3b8;">Maksimum 6 Takım katılabilir.</p>
     <input type="text" id="in-team-name" placeholder="Takım Adınızı Yazın...">
-    <button id="btn-login" type="button">Lige Katıl</button>
+    <button id="btn-login" type="button" onclick="takimKaydet()">Lige Katıl</button>
+    <p id="login-msg" style="color: #f59e0b; font-size: 13px; text-align: center; margin-top: 8px; display: none;"></p>
   </div>
 
   <!-- ANA OYUN EKRANI -->
   <div id="sec-game" style="display:none;">
     
-    <!-- SAHA VE KADRO DİZİLİŞİ -->
     <div class="card">
       <h2 id="disp-team-name">Takımım</h2>
       <p style="font-size:12px; color:#94a3b8;">Aşağıdaki kadronuzdan oyuncuları sürükleyip sahaya yerleştirin.</p>
@@ -109,7 +107,6 @@
       </div>
     </div>
 
-    <!-- KADRO YÖNETİMİ & OYUNCULAR -->
     <div class="card">
       <h3>Takım Kadrosu (<span id="player-count">0</span>/16)</h3>
       <div class="player-list" id="squad-container"></div>
@@ -122,7 +119,6 @@
       <button type="button" onclick="oyuncuEkle()">Kadroya Oyuncu Ekle</button>
     </div>
 
-    <!-- OSM OYUN PLANLARI VE TAKTİKLER -->
     <div class="card">
       <h3>OSM Oyun Planları & Taktikler</h3>
       <label><b>Oyun Stili / Taktik Planı:</b></label>
@@ -149,14 +145,12 @@
       </div>
     </div>
 
-    <!-- FİKSTÜR VE MAÇ SİMÜLASYONU -->
     <div class="card">
       <h3>Lig Fikstürü (<span id="current-week-disp">Hafta 1</span>)</h3>
       <button class="sim-btn" id="btn-sim" type="button" onclick="haftayiOyna()">⚡ Bu Haftanın Maçlarını Simüle Et</button>
       <div id="fixture-container" style="margin-top:10px;"></div>
     </div>
 
-    <!-- PUAN DURUMU -->
     <div class="card">
       <h3>Lig Puan Durumu</h3>
       <table>
@@ -169,7 +163,6 @@
 
   </div>
 
-  <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
@@ -185,16 +178,12 @@
     };
 
     let db = null;
-    if (typeof firebase !== 'undefined') {
-      try {
-        if (!firebase.apps.length) {
-          firebase.initializeApp(firebaseConfig);
-        }
+    try {
+      if (typeof firebase !== 'undefined' && !firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
         db = firebase.database();
-      } catch(e) {
-        console.warn("Firebase başlatılamadı, Çevrimdışı mod kullanılacak:", e);
       }
-    }
+    } catch(e) { console.warn("Firebase hatasi:", e); }
 
     let myTeamId = localStorage.getItem('myTeamId') || null;
     let squad = [];
@@ -202,14 +191,6 @@
     let allTeams = {};
     let leagueFixtures = [];
     const defaultImg = "https://cdn-icons-png.flaticon.com/512/847/847969.png";
-
-    // Event Listener ile buton tıklamasını direkt bağlama (HTML onclick sorunlarını önler)
-    document.addEventListener("DOMContentLoaded", function() {
-      const loginBtn = document.getElementById('btn-login');
-      if (loginBtn) {
-        loginBtn.addEventListener('click', takimKaydet);
-      }
-    });
 
     function updateSlider(type) {
       const val = document.getElementById('r-' + type).value;
@@ -219,31 +200,48 @@
 
     function takimKaydet() {
       const nameInput = document.getElementById('in-team-name');
-      if (!nameInput) return;
-      const name = nameInput.value.trim();
+      const name = nameInput ? nameInput.value.trim() : "";
       if (!name) return alert('Lütfen bir takım adı girin!');
 
       const btn = document.getElementById('btn-login');
-      if (btn) {
-        btn.innerText = "Giriş Yapılıyor...";
-        btn.disabled = true;
+      const msg = document.getElementById('login-msg');
+      
+      btn.innerText = "Giriş Yapılıyor...";
+      btn.disabled = true;
+      if (msg) {
+        msg.style.display = "block";
+        msg.innerText = "Giriş yapılıyor, lütfen bekleyin...";
       }
 
+      let isDone = false;
+      const forceStart = () => {
+        if (!isDone) {
+          isDone = true;
+          myTeamId = 'team_' + Date.now();
+          localStorage.setItem('myTeamId', myTeamId);
+          initGame(name);
+        }
+      };
+
+      // 1 saniye içinde yanıt gelmezse doğrudan oyuna yönlendir
+      setTimeout(forceStart, 1000);
+
       if (!db) {
-        // Firebase erişilemez durumdaysa çevrimdışı yerel modda devam et
-        myTeamId = 'team_' + Date.now();
-        localStorage.setItem('myTeamId', myTeamId);
-        localStorage.setItem('myTeamName', name);
-        initGame(name);
+        forceStart();
         return;
       }
 
       db.ref('teams').once('value').then(snapshot => {
+        if (isDone) return;
+        isDone = true;
+
         const teams = snapshot.val() || {};
         const teamKeys = Object.keys(teams);
         if (teamKeys.length >= 6) {
           alert('Lig dolu! Maksimum 6 takım katılabilir.');
-          if (btn) { btn.innerText = "Lige Katıl"; btn.disabled = false; }
+          btn.innerText = "Lige Katıl";
+          btn.disabled = false;
+          if (msg) msg.style.display = "none";
           return;
         }
 
@@ -261,16 +259,8 @@
             fiksturOlustur(Object.keys({...teams, [myTeamId]: true}));
           }
           initGame(name);
-        }).catch(err => {
-          console.error("Takım kaydetme hatası:", err);
-          initGame(name);
-        });
-      }).catch(err => {
-        console.error("Firebase erişim hatası:", err);
-        myTeamId = 'team_' + Date.now();
-        localStorage.setItem('myTeamId', myTeamId);
-        initGame(name);
-      });
+        }).catch(() => initGame(name));
+      }).catch(() => forceStart());
     }
 
     function fiksturOlustur(teamIds) {
@@ -361,23 +351,16 @@
           <div class="p-name">${data.name}</div>
           <div class="p-ovr">${data.ovr}</div>
         `;
-      } catch (err) {
-        console.log("Sürükleme hatası:", err);
-      }
+      } catch (err) {}
     }
 
     function taktikKaydet() {
       if (!myTeamId || !db) return;
-      const baski = document.getElementById('r-baski').value;
-      const stil = document.getElementById('r-stil').value;
-      const tempo = document.getElementById('r-tempo').value;
-      const style = document.getElementById('t-style').value;
-
       db.ref(`teams/${myTeamId}/tactics`).set({
-        baski: baski,
-        stil: stil,
-        tempo: tempo,
-        style: style
+        baski: document.getElementById('r-baski').value,
+        stil: document.getElementById('r-stil').value,
+        tempo: document.getElementById('r-tempo').value,
+        style: document.getElementById('t-style').value
       });
     }
 
@@ -416,14 +399,12 @@
 
         for (let i = 0; i < hScore; i++) {
           let min = Math.floor(Math.random() * 88) + 1;
-          let player = golcuSec(tHome);
-          m.goalDetails.push({ team: 'home', text: `⚽ dk '${min} ${player}` });
+          m.goalDetails.push({ team: 'home', text: `⚽ dk '${min} ${golcuSec(tHome)}` });
         }
 
         for (let i = 0; i < aScore; i++) {
           let min = Math.floor(Math.random() * 88) + 1;
-          let player = golcuSec(tAway);
-          m.goalDetails.push({ team: 'away', text: `⚽ dk '${min} ${player}` });
+          m.goalDetails.push({ team: 'away', text: `⚽ dk '${min} ${golcuSec(tAway)}` });
         }
 
         if (tHome && tAway) {
@@ -463,4 +444,22 @@
             <tr>
               <td><b>${t.name}</b></td>
               <td>${t.o}</td>
-              <td
+              <td>${t.g}</td>
+              <td>${t.b}</td>
+              <td>${t.m}</td>
+              <td>${t.ag}</td>
+              <td>${t.yg}</td>
+              <td>${t.av}</td>
+              <td><b>${t.pts}</b></td>
+            </tr>`;
+        });
+      });
+
+      db.ref('currentWeek').on('value', snapshot => {
+        currentWeek = snapshot.val() || 1;
+        document.getElementById('current-week-disp').innerText = currentWeek <= 10 ? `Hafta ${currentWeek}` : 'Lig Bitti';
+      });
+
+      db.ref('fixtures').on('value', snapshot => {
+        leagueFixtures = snapshot.val() || [];
+        const container = document.getElementById('
