@@ -469,6 +469,7 @@
     </main>
 
     <script>
+        // Oyun durumu nesnesi
         let gameState = {
             roomCode: "",
             teamName: "",
@@ -484,8 +485,10 @@
 
         function saveGame() {
             try {
-                localStorage.setItem('bimSuperLigSave_v8', JSON.stringify(gameState));
-            } catch(e) { console.error("Kayıt hatası", e); }
+                localStorage.setItem('bimSuperLigSave_v9', JSON.stringify(gameState));
+            } catch(e) { 
+                console.error("Kayıt hatası:", e); 
+            }
         }
 
         function toggleMenu() {
@@ -498,7 +501,8 @@
         }
 
         function switchView(viewId) {
-            document.querySelectorAll('.view-section').forEach(sec => {
+            const sections = document.querySelectorAll('.view-section');
+            sections.forEach(sec => {
                 sec.classList.remove('active');
                 if(sec.id === viewId) {
                     sec.classList.add('active');
@@ -580,9 +584,9 @@
             const rangeAggression = document.getElementById('rangeAggression');
 
             if(playStyle) gameState.tactic = playStyle.value;
-            if(rangePress) gameState.press = parseInt(rangePress.value);
-            if(rangeTempo) gameState.tempo = parseInt(rangeTempo.value);
-            if(rangeAggression) gameState.aggression = parseInt(rangeAggression.value);
+            if(rangePress) gameState.press = parseInt(rangePress.value, 10);
+            if(rangeTempo) gameState.tempo = parseInt(rangeTempo.value, 10);
+            if(rangeAggression) gameState.aggression = parseInt(rangeAggression.value, 10);
             
             saveGame();
             alert("Taktikler, Baskı, Tempo ve Agresiflik ayarları başarıyla kaydedildi!");
@@ -623,7 +627,4 @@
 
             setTimeout(() => {
                 if(scoreLbl) scoreLbl.innerText = `${homeGoals} - ${awayGoals}`;
-                commentaryBox.innerHTML += `<div class="comment-item">90' Maç bitti! Sonuç: ${homeTeam} ${homeGoals} - ${awayGoals} ${awayTeam}</div>`;
-
-                if(!gameState.table[homeTeam]) {
-    
+                commentaryBox.innerHTML += `<div class="comment-item">90' Maç bitti! Sonuç: $
