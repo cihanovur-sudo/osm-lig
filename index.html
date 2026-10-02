@@ -266,7 +266,6 @@
       let myTeamId = localStorage.getItem('myTeamId') || 'team_' + Math.floor(Math.random() * 100000);
       let myTeamName = localStorage.getItem('savedTeamName') || "Bursa Spor";
 
-      // Kayıtlı kadroyu yükle veya varsayılanı kullan
       let savedSquad = localStorage.getItem('savedSquad');
       let squad = savedSquad ? JSON.parse(savedSquad) : [
         { id: 1, name: "Burak Yılmaz", country: "🇹🇷", ovr: 82, pot: 85 },
@@ -275,7 +274,6 @@
         { id: 4, name: "Sarr", country: "🇸🇳", ovr: 81, pot: 84 }
       ];
 
-      // Kayıtlı dizilimi yükle
       let savedSlots = localStorage.getItem('savedPitchSlots');
       let pitchSlots = savedSlots ? JSON.parse(savedSlots) : { SF: null, OS: null, DEF: null, KL: null };
 
@@ -290,11 +288,9 @@
       let simDelay = 1000;
       let activeMatchData = null;
 
-      // Eğer daha önceden oda adı ve takım adı kayıtlıysa inputlara yerleştir
       if(document.getElementById('in-league-code')) document.getElementById('in-league-code').value = leagueCode;
       if(document.getElementById('in-team-name')) document.getElementById('in-team-name').value = myTeamName;
 
-      // Eğer daha önce giriş yapılmışsa direkt oyuna al (Kaldığı yerden devam etme)
       if(localStorage.getItem('savedLeagueCode') && localStorage.getItem('savedTeamName')) {
         autoLogin();
       }
@@ -316,29 +312,30 @@
         } catch(e) { console.log("Firebase baglanti uyarisi:", e); }
       }
 
-      const startBtn = document.getElementById('btn-start');
-      if(startBtn) {
-        startBtn.addEventListener('click', startGame);
-        startBtn.addEventListener('touchend', function(e) {
+      // Butonların takılmasını önlemek için ortak tıklama dinleyicisi kurucu fonksiyonu
+      function bindButton(id, callback) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.addEventListener('click', (e) => {
           e.preventDefault();
-          startGame();
+          callback();
+        });
+        el.addEventListener('touchend', (e) => {
+          e.preventDefault();
+          callback();
         });
       }
 
-      const openMenuBtn = document.getElementById('btn-open-menu');
-      if(openMenuBtn) openMenuBtn.onclick = toggleMenu;
+      bindButton('btn-start', startGame);
+      bindButton('btn-open-menu', toggleMenu);
+      bindButton('btn-close-menu', toggleMenu);
+      bindButton('btn-add-p', oyuncuEkle);
+      bindButton('btn-sim-match', startMatchSimulation);
+      bindButton('btn-close-sim', closeMatchModal);
 
-      const closeMenuBtn = document.getElementById('btn-close-menu');
-      if(closeMenuBtn) closeMenuBtn.onclick = toggleMenu;
-
-      const addPBtn = document.getElementById('btn-add-p');
-      if(addPBtn) addPBtn.onclick = oyuncuEkle;
-
-      const simMatchBtn = document.getElementById('btn-sim-match');
-      if(simMatchBtn) simMatchBtn.onclick = startMatchSimulation;
-
-      const closeSimBtn = document.getElementById('btn-close-sim');
-      if(closeSimBtn) closeSimBtn.onclick = closeMatchModal;
+      bindButton('sp-1', () => changeSpeed(1000, 'sp-1'));
+      bindButton('sp-2', () => changeSpeed(500, 'sp-2'));
+      bindButton('sp-4', () => changeSpeed(250, 'sp-4'));
 
       const rbaski = document.getElementById('r-baski');
       if(rbaski) rbaski.oninput = (e) => document.getElementById('v-baski').innerText = e.target.value + '%';
@@ -348,15 +345,6 @@
       
       const ragresif = document.getElementById('r-agresif');
       if(ragresif) ragresif.oninput = (e) => document.getElementById('v-agresif').innerText = e.target.value + '%';
-
-      const sp1 = document.getElementById('sp-1');
-      if(sp1) sp1.onclick = () => changeSpeed(1000, 'sp-1');
-      
-      const sp2 = document.getElementById('sp-2');
-      if(sp2) sp2.onclick = () => changeSpeed(500, 'sp-2');
-      
-      const sp4 = document.getElementById('sp-4');
-      if(sp4) sp4.onclick = () => changeSpeed(250, 'sp-4');
 
       document.querySelectorAll('.menu-list li').forEach(item => {
         item.onclick = function() { showPage(this.getAttribute('data-page')); };
@@ -452,4 +440,20 @@
 
       function restorePitchSlotsUI() {
         for (let pos in pitchSlots) {
-          let p = pitch
+          let p = pitchSlots[pos];
+          if (p) {
+            const slotEl = document.getElementById(`slot-${pos}`);
+            if(slotEl) {
+              slotEl.classList.add('filled');
+              slotEl.innerHTML = `
+                <div style="font-size:10px; font-weight:bold;">${p.country} ${p.name}</div>
+                <div style="background:#f97316; color:#fff; padding:1px 4px; border-radius:3px; font-size:9px;">OVR: ${p.ovr}</div>
+              `;
+            }
+          }
+        }
+      }
+
+      function checkAndGenerateFixtures() {
+        let teams = Object.values(allLeagueTeams);
+        if (
