@@ -15,15 +15,16 @@
     }
     .top-bar h2 { margin: 0; color: #ffffff; font-size: 18px; }
     .top-bar .league-badge { background: #3a506b; font-size: 11px; padding: 4px 8px; border-radius: 4px; color: #f97316; font-weight: bold; }
-    .menu-btn { background: transparent; border: none; color: #f97316; font-size: 26px; cursor: pointer; padding: 0; width: auto; z-index: 101; touch-action: manipulation; }
+    .menu-btn { background: transparent; border: none; color: #f97316; font-size: 26px; cursor: pointer; padding: 0; width: auto; z-index: 101; }
 
     .main-content { padding: 15px; }
     .card { background: #1c2541; padding: 15px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #3a506b; }
     h3, h4 { color: #f97316; margin-top: 0; }
     input, select, button { width: 100%; padding: 12px; margin: 6px 0; border-radius: 8px; border: 1px solid #3a506b; background: #0b132b; color: #fff; font-size: 14px; outline: none; }
-    button { background: #f97316; font-weight: bold; cursor: pointer; border: none; color: #fff; font-size: 16px; transition: 0.2s; touch-action: manipulation; }
-    button:active { transform: scale(0.98); }
+    button { background: #f97316; font-weight: bold; cursor: pointer; border: none; color: #fff; font-size: 16px; transition: 0.1s; }
+    button:active { transform: scale(0.96); background: #ea580c; }
     button.danger { background: #ef4444; color: #fff; }
+    button.danger:active { background: #dc2626; }
     button.sim-btn { background: #f97316; color: #fff; font-size: 16px; font-weight: bold; padding: 15px; box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3); }
 
     .sidebar {
@@ -34,9 +35,10 @@
     .sidebar.open { right: 0; }
     .sidebar-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #3a506b; padding-bottom: 10px; }
     .sidebar-header h3 { margin: 0; color: #fff; }
-    .close-btn { background: transparent; color: #ef4444; border: none; font-size: 22px; cursor: pointer; width: auto; touch-action: manipulation; }
+    .close-btn { background: transparent; color: #ef4444; border: none; font-size: 22px; cursor: pointer; width: auto; }
     .menu-list { list-style: none; padding: 0; margin-top: 20px; }
-    .menu-list li { padding: 12px; margin: 8px 0; background: #1c2541; border-radius: 8px; cursor: pointer; border-left: 4px solid #f97316; font-weight: bold; color: #fff; touch-action: manipulation; }
+    .menu-list li { padding: 12px; margin: 8px 0; background: #1c2541; border-radius: 8px; cursor: pointer; border-left: 4px solid #f97316; font-weight: bold; color: #fff; }
+    .menu-list li:active { background: #3a506b; }
 
     .pitch { 
       background: linear-gradient(180deg, #1e3a8a 0%, #0f172a 100%); 
@@ -52,7 +54,6 @@
       border-radius: 10px; text-align: center; font-size: 10px; 
       display: flex; flex-direction: column; align-items: center; justify-content: center;
       transition: all 0.2s; color: #fff; font-weight: bold; cursor: pointer; z-index: 10;
-      touch-action: manipulation;
     }
     .slot.filled { border: 2px solid #f97316; background: #1c2541; }
 
@@ -61,7 +62,7 @@
     .pos-DEF { bottom: 110px; left: calc(50% - 40px); }
     .pos-KL  { bottom: 15px; left: calc(50% - 40px); }
 
-    .player-card { background: #0b132b; padding: 10px; border-radius: 6px; margin: 6px 0; font-size: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #3a506b; cursor: pointer; touch-action: manipulation; }
+    .player-card { background: #0b132b; padding: 10px; border-radius: 6px; margin: 6px 0; font-size: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #3a506b; cursor: pointer; }
     .player-card.selected { border: 2px solid #f97316; background: #1c2541; }
     .player-list { max-height: 250px; overflow-y: auto; background: #0b132b; padding: 8px; border-radius: 6px; }
 
@@ -88,7 +89,7 @@
     .comment-goal { color: #22c55e; font-weight: bold; }
     .comment-foul { color: #ef4444; }
     .speed-controls { display: flex; gap: 10px; margin-top: 15px; }
-    .speed-btn { background: #3a506b; color: #fff; padding: 8px; border-radius: 6px; font-size: 12px; touch-action: manipulation; }
+    .speed-btn { background: #3a506b; color: #fff; padding: 8px; border-radius: 6px; font-size: 12px; cursor: pointer; }
     .speed-btn.active { background: #f97316; }
   </style>
 </head>
@@ -312,30 +313,22 @@
         } catch(e) { console.log("Firebase baglanti uyarisi:", e); }
       }
 
-      // Butonların takılmasını önlemek için ortak tıklama dinleyicisi kurucu fonksiyonu
-      function bindButton(id, callback) {
+      // Butonları stabil hale getiren click dinleyicisi
+      function bindClick(id, fn) {
         const el = document.getElementById(id);
-        if (!el) return;
-        el.addEventListener('click', (e) => {
-          e.preventDefault();
-          callback();
-        });
-        el.addEventListener('touchend', (e) => {
-          e.preventDefault();
-          callback();
-        });
+        if (el) el.onclick = fn;
       }
 
-      bindButton('btn-start', startGame);
-      bindButton('btn-open-menu', toggleMenu);
-      bindButton('btn-close-menu', toggleMenu);
-      bindButton('btn-add-p', oyuncuEkle);
-      bindButton('btn-sim-match', startMatchSimulation);
-      bindButton('btn-close-sim', closeMatchModal);
+      bindClick('btn-start', startGame);
+      bindClick('btn-open-menu', toggleMenu);
+      bindClick('btn-close-menu', toggleMenu);
+      bindClick('btn-add-p', oyuncuEkle);
+      bindClick('btn-sim-match', startMatchSimulation);
+      bindClick('btn-close-sim', closeMatchModal);
 
-      bindButton('sp-1', () => changeSpeed(1000, 'sp-1'));
-      bindButton('sp-2', () => changeSpeed(500, 'sp-2'));
-      bindButton('sp-4', () => changeSpeed(250, 'sp-4'));
+      bindClick('sp-1', () => changeSpeed(1000, 'sp-1'));
+      bindClick('sp-2', () => changeSpeed(500, 'sp-2'));
+      bindClick('sp-4', () => changeSpeed(250, 'sp-4'));
 
       const rbaski = document.getElementById('r-baski');
       if(rbaski) rbaski.oninput = (e) => document.getElementById('v-baski').innerText = e.target.value + '%';
@@ -456,4 +449,10 @@
 
       function checkAndGenerateFixtures() {
         let teams = Object.values(allLeagueTeams);
-        if (
+        if (teams.length >= 2 && fixtures.length === 0) {
+          fixtures = [
+            { round: 1, home: teams[0].id, away: teams[1].id, played: false, hGoals: 0, aGoals: 0 },
+            { round: 2, home: teams[1].id, away: teams[0].id, played: false, hGoals: 0, aGoals: 0 }
+          ];
+          if (db) {
+            try { db.ref
