@@ -259,7 +259,8 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
   <script>
-    document.addEventListener("DOMContentLoaded", function() {
+    // Sayfanın yüklenmesini beklemeden global tıklama yakalayıcı ekliyoruz ki buton kesin çalışsın
+    window.addEventListener("DOMContentLoaded", function() {
       
       let db = null;
       let leagueCode = "ozeloda1";
@@ -299,12 +300,18 @@
             });
             db = firebase.database();
           }
-        } catch(e) { console.log("Firebase baglanti uyarisi (Yerel modda devam ediliyor):", e); }
+        } catch(e) { console.log("Firebase baglanti uyarisi:", e); }
       }
 
-      // Buton olayları güvenli bağlandı
+      // --- KESİN ÇÖZÜM: Odaya Katıl Butonuna Hem Click Hem Touchend Eklendi ---
       const startBtn = document.getElementById('btn-start');
-      if(startBtn) startBtn.onclick = startGame;
+      if(startBtn) {
+        startBtn.addEventListener('click', startGame);
+        startBtn.addEventListener('touchend', function(e) {
+          e.preventDefault();
+          startGame();
+        });
+      }
 
       const openMenuBtn = document.getElementById('btn-open-menu');
       if(openMenuBtn) openMenuBtn.onclick = toggleMenu;
@@ -352,7 +359,10 @@
         const lInput = document.getElementById('in-league-code').value.trim();
         const tInput = document.getElementById('in-team-name').value.trim();
 
-        if (!lInput || !tInput) return alert('Lütfen Oda Adını ve Takım Adınızı yazın!');
+        if (!lInput || !tInput) {
+          alert('Lütfen Oda Adını ve Takım Adınızı yazın!');
+          return;
+        }
 
         leagueCode = lInput.toLowerCase();
         myTeamName = tInput;
@@ -445,12 +455,4 @@
       }
 
       function startMatchSimulation() {
-        for (let pos in pitchSlots) {
-          if (!pitchSlots[pos]) return alert(`⚠️ Lütfen sahadaki ${pos} pozisyonuna oyuncu yerleştirin!`);
-        }
-
-        checkAndGenerateFixtures();
-
-        let nextFixtureIndex = fixtures.findIndex(f => !f.played);
-        if (nextFixtureIndex === -1) {
-          // Fikst
+        for (l
