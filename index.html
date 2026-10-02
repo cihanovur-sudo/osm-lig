@@ -2,10 +2,10 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>BimSüperlig - Canlı Simülasyonlu Özel Lig</title>
   <style>
-    * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; -webkit-tap-highlight-color: transparent; }
     body { background: #0b132b; color: #fff; margin: 0; padding: 0; overflow-x: hidden; }
     
     .top-bar { 
@@ -15,28 +15,28 @@
     }
     .top-bar h2 { margin: 0; color: #ffffff; font-size: 18px; }
     .top-bar .league-badge { background: #3a506b; font-size: 11px; padding: 4px 8px; border-radius: 4px; color: #f97316; font-weight: bold; }
-    .menu-btn { background: transparent; border: none; color: #f97316; font-size: 26px; cursor: pointer; padding: 0; width: auto; }
+    .menu-btn { background: transparent; border: none; color: #f97316; font-size: 26px; cursor: pointer; padding: 0; width: auto; z-index: 101; touch-action: manipulation; }
 
     .main-content { padding: 15px; }
     .card { background: #1c2541; padding: 15px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #3a506b; }
     h3, h4 { color: #f97316; margin-top: 0; }
-    input, select, button { width: 100%; padding: 12px; margin: 6px 0; border-radius: 8px; border: 1px solid #3a506b; background: #0b132b; color: #fff; font-size: 14px; }
-    button { background: #f97316; font-weight: bold; cursor: pointer; border: none; color: #fff; font-size: 16px; transition: 0.2s; }
+    input, select, button { width: 100%; padding: 12px; margin: 6px 0; border-radius: 8px; border: 1px solid #3a506b; background: #0b132b; color: #fff; font-size: 14px; outline: none; }
+    button { background: #f97316; font-weight: bold; cursor: pointer; border: none; color: #fff; font-size: 16px; transition: 0.2s; touch-action: manipulation; }
     button:active { transform: scale(0.98); }
     button.danger { background: #ef4444; color: #fff; }
     button.sim-btn { background: #f97316; color: #fff; font-size: 16px; font-weight: bold; padding: 15px; box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3); }
 
     .sidebar {
       position: fixed; top: 0; right: -280px; width: 280px; height: 100%;
-      background: #0b132b; border-left: 3px solid #f97316; z-index: 200;
+      background: #0b132b; border-left: 3px solid #f97316; z-index: 500;
       transition: right 0.3s ease; padding: 20px; box-shadow: -5px 0 15px rgba(0,0,0,0.5);
     }
     .sidebar.open { right: 0; }
     .sidebar-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #3a506b; padding-bottom: 10px; }
     .sidebar-header h3 { margin: 0; color: #fff; }
-    .close-btn { background: transparent; color: #ef4444; border: none; font-size: 22px; cursor: pointer; width: auto; }
+    .close-btn { background: transparent; color: #ef4444; border: none; font-size: 22px; cursor: pointer; width: auto; touch-action: manipulation; }
     .menu-list { list-style: none; padding: 0; margin-top: 20px; }
-    .menu-list li { padding: 12px; margin: 8px 0; background: #1c2541; border-radius: 8px; cursor: pointer; border-left: 4px solid #f97316; font-weight: bold; color: #fff; }
+    .menu-list li { padding: 12px; margin: 8px 0; background: #1c2541; border-radius: 8px; cursor: pointer; border-left: 4px solid #f97316; font-weight: bold; color: #fff; touch-action: manipulation; }
 
     .pitch { 
       background: linear-gradient(180deg, #1e3a8a 0%, #0f172a 100%); 
@@ -51,7 +51,8 @@
       background: rgba(11, 19, 43, 0.85); border: 2px dashed #f97316; 
       border-radius: 10px; text-align: center; font-size: 10px; 
       display: flex; flex-direction: column; align-items: center; justify-content: center;
-      transition: all 0.2s; color: #fff; font-weight: bold; cursor: pointer;
+      transition: all 0.2s; color: #fff; font-weight: bold; cursor: pointer; z-index: 10;
+      touch-action: manipulation;
     }
     .slot.filled { border: 2px solid #f97316; background: #1c2541; }
 
@@ -60,7 +61,7 @@
     .pos-DEF { bottom: 110px; left: calc(50% - 40px); }
     .pos-KL  { bottom: 15px; left: calc(50% - 40px); }
 
-    .player-card { background: #0b132b; padding: 10px; border-radius: 6px; margin: 6px 0; font-size: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #3a506b; cursor: pointer; }
+    .player-card { background: #0b132b; padding: 10px; border-radius: 6px; margin: 6px 0; font-size: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #3a506b; cursor: pointer; touch-action: manipulation; }
     .player-card.selected { border: 2px solid #f97316; background: #1c2541; }
     .player-list { max-height: 250px; overflow-y: auto; background: #0b132b; padding: 8px; border-radius: 6px; }
 
@@ -71,7 +72,7 @@
 
     #live-match-modal {
       display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: #0b132b; z-index: 300; padding: 20px; box-sizing: border-box; overflow-y: auto;
+      background: #0b132b; z-index: 600; padding: 20px; box-sizing: border-box; overflow-y: auto;
     }
     .scoreboard {
       background: #1c2541; border: 2px solid #f97316; border-radius: 12px; padding: 15px;
@@ -87,7 +88,7 @@
     .comment-goal { color: #22c55e; font-weight: bold; }
     .comment-foul { color: #ef4444; }
     .speed-controls { display: flex; gap: 10px; margin-top: 15px; }
-    .speed-btn { background: #3a506b; color: #fff; padding: 8px; border-radius: 6px; font-size: 12px; }
+    .speed-btn { background: #3a506b; color: #fff; padding: 8px; border-radius: 6px; font-size: 12px; touch-action: manipulation; }
     .speed-btn.active { background: #f97316; }
   </style>
 </head>
@@ -119,13 +120,13 @@
         <h2 id="disp-team-name">Takımım</h2>
         <span class="league-badge" id="disp-league-code">Oda: -</span>
       </div>
-      <button class="menu-btn" id="btn-open-menu">☰</button>
+      <button class="menu-btn" id="btn-open-menu" type="button">☰</button>
     </div>
 
     <div class="sidebar" id="sidebar">
       <div class="sidebar-header">
         <h3>Menü</h3>
-        <button class="close-btn" id="btn-close-menu">✕</button>
+        <button class="close-btn" id="btn-close-menu" type="button">✕</button>
       </div>
       <ul class="menu-list">
         <li data-page="home">🏠 Saha & Kadro</li>
@@ -242,16 +243,16 @@
     </div>
 
     <div class="commentary-box" id="m-commentary">
-      <div class="comment-line">🎙️ Hakem düdüğünü çaldı ve maç başladı!</div>
+      <div class="comment-line">🎙️️ Hakem düdüğünü çaldı ve maç başladı!</div>
     </div>
 
     <div class="speed-controls">
-      <button class="speed-btn active" id="sp-1">1x Hız</button>
-      <button class="speed-btn" id="sp-2">2x Hız</button>
-      <button class="speed-btn" id="sp-4">4x Hız</button>
+      <button class="speed-btn active" id="sp-1" type="button">1x Hız</button>
+      <button class="speed-btn" id="sp-2" type="button">2x Hız</button>
+      <button class="speed-btn" id="sp-4" type="button">4x Hız</button>
     </div>
 
-    <button id="btn-close-sim" style="margin-top:15px; display:none; background:#22c55e;">Maçı Tamamla ve Menüye Dön</button>
+    <button id="btn-close-sim" type="button" style="margin-top:15px; display:none; background:#22c55e;">Maçı Tamamla ve Menüye Dön</button>
   </div>
 
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -438,17 +439,4 @@
 
         currentMinute = 0;
         currentHomeScore = 0;
-        currentAwayScore = 0;
-
-        runSimulationLoop(homeTeam, awayTeam);
-      }
-
-      function runSimulationLoop(homeTeam, awayTeam) {
-        clearInterval(simInterval);
-
-        simInterval = setInterval(() => {
-          currentMinute += 3;
-          document.getElementById('m-clock').innerText = currentMinute + "'";
-
-          let rand = Math.random();
-          let commentary = document.getElementByI
+       
