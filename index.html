@@ -243,7 +243,7 @@
     </div>
 
     <div class="commentary-box" id="m-commentary">
-      <div class="comment-line">🎙️️ Hakem düdüğünü çaldı ve maç başladı!</div>
+      <div class="comment-line">🎙 Hakem düdüğünü çaldı ve maç başladı!</div>
     </div>
 
     <div class="speed-controls">
@@ -299,30 +299,53 @@
             });
             db = firebase.database();
           }
-        } catch(e) { console.log("Firebase baglanti uyarisi:", e); }
+        } catch(e) { console.log("Firebase baglanti uyarisi (Yerel modda devam ediliyor):", e); }
       }
 
-      document.getElementById('btn-start').onclick = startGame;
-      document.getElementById('btn-open-menu').onclick = toggleMenu;
-      document.getElementById('btn-close-menu').onclick = toggleMenu;
-      document.getElementById('btn-add-p').onclick = oyuncuEkle;
-      document.getElementById('btn-sim-match').onclick = startMatchSimulation;
-      document.getElementById('btn-close-sim').onclick = closeMatchModal;
+      // Buton olayları güvenli bağlandı
+      const startBtn = document.getElementById('btn-start');
+      if(startBtn) startBtn.onclick = startGame;
 
-      document.getElementById('r-baski').oninput = (e) => document.getElementById('v-baski').innerText = e.target.value + '%';
-      document.getElementById('r-tempo').oninput = (e) => document.getElementById('v-tempo').innerText = e.target.value + '%';
-      document.getElementById('r-agresif').oninput = (e) => document.getElementById('v-agresif').innerText = e.target.value + '%';
+      const openMenuBtn = document.getElementById('btn-open-menu');
+      if(openMenuBtn) openMenuBtn.onclick = toggleMenu;
 
-      document.getElementById('sp-1').onclick = () => changeSpeed(1000, 'sp-1');
-      document.getElementById('sp-2').onclick = () => changeSpeed(500, 'sp-2');
-      document.getElementById('sp-4').onclick = () => changeSpeed(250, 'sp-4');
+      const closeMenuBtn = document.getElementById('btn-close-menu');
+      if(closeMenuBtn) closeMenuBtn.onclick = toggleMenu;
+
+      const addPBtn = document.getElementById('btn-add-p');
+      if(addPBtn) addPBtn.onclick = oyuncuEkle;
+
+      const simMatchBtn = document.getElementById('btn-sim-match');
+      if(simMatchBtn) simMatchBtn.onclick = startMatchSimulation;
+
+      const closeSimBtn = document.getElementById('btn-close-sim');
+      if(closeSimBtn) closeSimBtn.onclick = closeMatchModal;
+
+      const rbaski = document.getElementById('r-baski');
+      if(rbaski) rbaski.oninput = (e) => document.getElementById('v-baski').innerText = e.target.value + '%';
+      
+      const rtempo = document.getElementById('r-tempo');
+      if(rtempo) rtempo.oninput = (e) => document.getElementById('v-tempo').innerText = e.target.value + '%';
+      
+      const ragresif = document.getElementById('r-agresif');
+      if(ragresif) ragresif.oninput = (e) => document.getElementById('v-agresif').innerText = e.target.value + '%';
+
+      const sp1 = document.getElementById('sp-1');
+      if(sp1) sp1.onclick = () => changeSpeed(1000, 'sp-1');
+      
+      const sp2 = document.getElementById('sp-2');
+      if(sp2) sp2.onclick = () => changeSpeed(500, 'sp-2');
+      
+      const sp4 = document.getElementById('sp-4');
+      if(sp4) sp4.onclick = () => changeSpeed(250, 'sp-4');
 
       document.querySelectorAll('.menu-list li').forEach(item => {
         item.onclick = function() { showPage(this.getAttribute('data-page')); };
       });
 
       ['SF', 'OS', 'DEF', 'KL'].forEach(pos => {
-        document.getElementById(`slot-${pos}`).onclick = () => slotSec(pos);
+        const slotEl = document.getElementById(`slot-${pos}`);
+        if(slotEl) slotEl.onclick = () => slotSec(pos);
       });
 
       function startGame() {
@@ -339,6 +362,7 @@
         document.getElementById('disp-team-name').innerText = myTeamName;
         document.getElementById('disp-league-code').innerText = "Oda: " + leagueCode;
 
+        // Ekran geçişini zorla yap
         document.getElementById('sec-login').style.display = 'none';
         document.getElementById('sec-game').style.display = 'block';
 
@@ -353,24 +377,28 @@
         allLeagueTeams[myTeamId] = myData;
 
         if (db) {
-          db.ref(`leagues/${leagueCode}/teams/${myTeamId}`).set(myData);
-          
-          db.ref(`leagues/${leagueCode}/teams`).on('value', snapshot => {
-            const data = snapshot.val();
-            if (data) {
-              allLeagueTeams = data;
-              checkAndGenerateFixtures();
-              renderTable();
-            }
-          });
+          try {
+            db.ref(`leagues/${leagueCode}/teams/${myTeamId}`).set(myData);
+            
+            db.ref(`leagues/${leagueCode}/teams`).on('value', snapshot => {
+              const data = snapshot.val();
+              if (data) {
+                allLeagueTeams = data;
+                checkAndGenerateFixtures();
+                renderTable();
+              }
+            });
 
-          db.ref(`leagues/${leagueCode}/fixtures`).on('value', snapshot => {
-            const data = snapshot.val();
-            if (data) {
-              fixtures = data;
-              renderFixtures();
-            }
-          });
+            db.ref(`leagues/${leagueCode}/fixtures`).on('value', snapshot => {
+              const data = snapshot.val();
+              if (data) {
+                fixtures = data;
+                renderFixtures();
+              }
+            });
+          } catch(err) {
+            console.log("Firebase veri yazma hatası:", err);
+          }
         }
 
         renderSquad();
@@ -384,7 +412,9 @@
             { round: 1, home: teams[0].id, away: teams[1].id, played: false, hGoals: 0, aGoals: 0 },
             { round: 2, home: teams[1].id, away: teams[0].id, played: false, hGoals: 0, aGoals: 0 }
           ];
-          if (db) db.ref(`leagues/${leagueCode}/fixtures`).set(fixtures);
+          if (db) {
+            try { db.ref(`leagues/${leagueCode}/fixtures`).set(fixtures); } catch(e){}
+          }
           renderFixtures();
         }
       }
@@ -422,21 +452,5 @@
         checkAndGenerateFixtures();
 
         let nextFixtureIndex = fixtures.findIndex(f => !f.played);
-        if (nextFixtureIndex === -1) return alert('Tüm fikstür maçları tamamlandı!');
-
-        activeMatchData = fixtures[nextFixtureIndex];
-        let homeTeam = allLeagueTeams[activeMatchData.home] || { name: 'Ev Sahibi', id: 'h1' };
-        let awayTeam = allLeagueTeams[activeMatchData.away] || { name: 'Deplasman', id: 'a1' };
-
-        document.getElementById('m-home-name').innerText = homeTeam.name;
-        document.getElementById('m-away-name').innerText = awayTeam.name;
-        document.getElementById('m-score').innerText = '0 - 0';
-        document.getElementById('m-clock').innerText = "00'";
-        document.getElementById('m-commentary').innerHTML = '<div class="comment-line">🎙️ Hakem düdüğünü çaldı ve maç başladı!</div>';
-        document.getElementById('btn-close-sim').style.display = 'none';
-
-        document.getElementById('live-match-modal').style.display = 'block';
-
-        currentMinute = 0;
-        currentHomeScore = 0;
-       
+        if (nextFixtureIndex === -1) {
+          // Fikst
